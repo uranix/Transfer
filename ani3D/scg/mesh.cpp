@@ -261,9 +261,9 @@ int mesh::mesh_front (int nV_, int nF_, double *Vertex_, int *Index_)
 
 int mesh::primitive_paral (double x, double y, double z, double MS, int nnV, int nnF)
 {
-	double *Vertex_ = (double*)malloc (sizeof (double) * 3 * 1000000);
-	int *Index_ = (int*)malloc (sizeof (int) * 3 * 1000000);
-	scg_make_paral (&nV, &nF, Vertex_, Index_, x, y, z, MS, 1000000, 1000000);
+	double *Vertex_ = (double*)malloc (sizeof (double) * 3 * nnV);
+	int *Index_ = (int*)malloc (sizeof (int) * 3 * nnF);
+	scg_make_paral (&nV, &nF, Vertex_, Index_, x, y, z, MS, nnV, nnF);
 
 	Vertex = (double*)malloc (sizeof (double) * 3 * (nV + 1));
 	Index = (int*)malloc (sizeof (int) * 3 * nF);
@@ -279,9 +279,9 @@ int mesh::primitive_paral (double x, double y, double z, double MS, int nnV, int
 
 int mesh::primitive_sphere (double x, double MS, int nnV, int nnF)
 {
-	double *Vertex_ = (double*)malloc (sizeof (double) * 3 * 1000000);
-	int *Index_ = (int*)malloc (sizeof (int) * 3 * 1000000);
-	scg_make_sphere (&nV, &nF, Vertex_, Index_, x, MS, 1000000, 1000000);
+	double *Vertex_ = (double*)malloc (sizeof (double) * 3 * nnV);
+	int *Index_ = (int*)malloc (sizeof (int) * 3 * nnF);
+	scg_make_sphere (&nV, &nF, Vertex_, Index_, x, MS, nnV, nnF);
 
 	Vertex = (double*)malloc (sizeof (double) * 3 * (nV + 1));
 	Index = (int*)malloc (sizeof (int) * 3 * nF);
@@ -298,9 +298,9 @@ int mesh::primitive_sphere (double x, double MS, int nnV, int nnF)
 
 int mesh::primitive_cylinder (double r, double h, double MS, int nnV, int nnF)
 {
-	double *Vertex_ = (double*)malloc (sizeof (double) * 3 * 1000000);
-	int *Index_ = (int*)malloc (sizeof (int) * 3 * 1000000);
-	scg_make_cylinder (&nV, &nF, Vertex_, Index_, r, h, MS, 1000000, 1000000);
+	double *Vertex_ = (double*)malloc (sizeof (double) * 3 * nnV);
+	int *Index_ = (int*)malloc (sizeof (int) * 3 * nnF);
+	scg_make_cylinder (&nV, &nF, Vertex_, Index_, r, h, MS, nnV, nnF);
 
 	Vertex = (double*)malloc (sizeof (double) * 3 * (nV + 1));
 	Index = (int*)malloc (sizeof (int) * 3 * nF);
