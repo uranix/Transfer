@@ -1,0 +1,5 @@
+#MSVC files
+*.user
+Debug/
+Release/
+
