@@ -1,0 +1,138 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="scg\mesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="scg\libprim.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="scg\libfrtscg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="scg\tritri1.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="scg\raytri.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="scg\error3.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="scg\libfrtprm.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="scg\memory3.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="scg\refine3.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="scg\region3.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="scg\sectio32.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="scg\section3.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="scg\struct3.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="scg\support.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="scg\tetra3.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="scg\tree3.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="scg\tree32.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="scg\tria32.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="scg\user3.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="scg\mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scg\libprim.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scg\libfrtscg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scg\libfrtprm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\libscg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scg\aft.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scg\det.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scg\error3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scg\memory3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scg\refine3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scg\region3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scg\sectio32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scg\section3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scg\struct3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scg\support.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scg\tetra3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scg\tree3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scg\tree32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scg\tria32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scg\user3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

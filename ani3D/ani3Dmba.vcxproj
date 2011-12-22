@@ -1,0 +1,363 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="mba\ani2.c" />
+    <ClCompile Include="mba\auxSE.c" />
+    <ClCompile Include="mba\auxSF.c" />
+    <ClCompile Include="mba\auxSP.c" />
+    <ClCompile Include="mba\auxSR.c" />
+    <ClCompile Include="mba\chkM.c" />
+    <ClCompile Include="mba\clpsR.c" />
+    <ClCompile Include="mba\deletP.c" />
+    <ClCompile Include="mba\dsort.c" />
+    <ClCompile Include="mba\E2F.c" />
+    <ClCompile Include="mba\error.c" />
+    <ClCompile Include="mba\F2E.c" />
+    <ClCompile Include="mba\forlibmba.c" />
+    <ClCompile Include="mba\insrtP.c" />
+    <ClCompile Include="mba\isnan.c" />
+    <ClCompile Include="mba\lintrp3D.c" />
+    <ClCompile Include="mba\list.c" />
+    <ClCompile Include="mba\loadM.c" />
+    <ClCompile Include="mba\makM.c" />
+    <ClCompile Include="mba\makQ.c" />
+    <ClCompile Include="mba\mba_analytic.c" />
+    <ClCompile Include="mba\mba_fixshape.c" />
+    <ClCompile Include="mba\mba_nodal.c" />
+    <ClCompile Include="mba\minim.c" />
+    <ClCompile Include="mba\moveP.c" />
+    <ClCompile Include="mba\nlnfnc.c" />
+    <ClCompile Include="mba\output.c" />
+    <ClCompile Include="mba\random.c" />
+    <ClCompile Include="mba\refine_mba.c" />
+    <ClCompile Include="mba\saveM.c" />
+    <ClCompile Include="mba\smoothing.c" />
+    <ClCompile Include="mba\splitE.c" />
+    <ClCompile Include="mba\swapR.c" />
+    <ClCompile Include="mba\time.c" />
+    <ClCompile Include="mba\time_new.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="mba\update.c" />
+    <ClCompile Include="mba\utils.c" />
+    <ClCompile Include="mba\utils_add.c" />
+    <ClCompile Include="mba\wrapper.c" />
+    <ClCompile Include="mba\ZZ.c" />
+    <ClCompile Include="util\blas\daxpy.c" />
+    <ClCompile Include="util\blas\dcopy.c" />
+    <ClCompile Include="util\blas\ddot.c" />
+    <ClCompile Include="util\blas\dgemm.c" />
+    <ClCompile Include="util\blas\dgemv.c" />
+    <ClCompile Include="util\blas\dger.c" />
+    <ClCompile Include="util\blas\dnrm2.c" />
+    <ClCompile Include="util\blas\dscal.c" />
+    <ClCompile Include="util\blas\dswap.c" />
+    <ClCompile Include="util\blas\dsymv.c" />
+    <ClCompile Include="util\blas\dsyr.c" />
+    <ClCompile Include="util\blas\dsyr2.c" />
+    <ClCompile Include="util\blas\dsyr2k.c" />
+    <ClCompile Include="util\blas\dsyrk.c" />
+    <ClCompile Include="util\blas\dtrmm.c" />
+    <ClCompile Include="util\blas\dtrmv.c" />
+    <ClCompile Include="util\blas\dtrsm.c" />
+    <ClCompile Include="util\blas\dtrsv.c" />
+    <ClCompile Include="util\blas\idamax.c" />
+    <ClCompile Include="util\blas\lsame.c" />
+    <ClCompile Include="util\blas\xerbla.c" />
+    <ClCompile Include="util\lapack\dgesv.c" />
+    <ClCompile Include="util\lapack\dgetf2.c" />
+    <ClCompile Include="util\lapack\dgetrf.c" />
+    <ClCompile Include="util\lapack\dgetrs.c" />
+    <ClCompile Include="util\lapack\dlae2.c" />
+    <ClCompile Include="util\lapack\dlaev2.c" />
+    <ClCompile Include="util\lapack\dlamch.c" />
+    <ClCompile Include="util\lapack\dlanst.c" />
+    <ClCompile Include="util\lapack\dlansy.c" />
+    <ClCompile Include="util\lapack\dlapy2.c" />
+    <ClCompile Include="util\lapack\dlarf.c" />
+    <ClCompile Include="util\lapack\dlarfb.c" />
+    <ClCompile Include="util\lapack\dlarfg.c" />
+    <ClCompile Include="util\lapack\dlarft.c" />
+    <ClCompile Include="util\lapack\dlartg.c" />
+    <ClCompile Include="util\lapack\dlascl.c" />
+    <ClCompile Include="util\lapack\dlaset.c" />
+    <ClCompile Include="util\lapack\dlasr.c" />
+    <ClCompile Include="util\lapack\dlasrt.c" />
+    <ClCompile Include="util\lapack\dlassq.c" />
+    <ClCompile Include="util\lapack\dlaswp.c" />
+    <ClCompile Include="util\lapack\dlasyf.c" />
+    <ClCompile Include="util\lapack\dlatrd.c" />
+    <ClCompile Include="util\lapack\dlauu2.c" />
+    <ClCompile Include="util\lapack\dlauum.c" />
+    <ClCompile Include="util\lapack\dorg2l.c" />
+    <ClCompile Include="util\lapack\dorg2r.c" />
+    <ClCompile Include="util\lapack\dorgql.c" />
+    <ClCompile Include="util\lapack\dorgqr.c" />
+    <ClCompile Include="util\lapack\dorgtr.c" />
+    <ClCompile Include="util\lapack\dposv.c" />
+    <ClCompile Include="util\lapack\dpotf2.c" />
+    <ClCompile Include="util\lapack\dpotrf.c" />
+    <ClCompile Include="util\lapack\dpotri.c" />
+    <ClCompile Include="util\lapack\dpotrs.c" />
+    <ClCompile Include="util\lapack\dsteqr.c" />
+    <ClCompile Include="util\lapack\dsterf.c" />
+    <ClCompile Include="util\lapack\dsyev.c" />
+    <ClCompile Include="util\lapack\dsysv.c" />
+    <ClCompile Include="util\lapack\dsytd2.c" />
+    <ClCompile Include="util\lapack\dsytf2.c" />
+    <ClCompile Include="util\lapack\dsytrd.c" />
+    <ClCompile Include="util\lapack\dsytrf.c" />
+    <ClCompile Include="util\lapack\dsytrs.c" />
+    <ClCompile Include="util\lapack\dtrti2.c" />
+    <ClCompile Include="util\lapack\dtrtri.c" />
+    <ClCompile Include="util\lapack\ieeeck.c" />
+    <ClCompile Include="util\lapack\ilaenv.c" />
+    <ClCompile Include="util\libf2c\abort_.c" />
+    <ClCompile Include="util\libf2c\backspac.c" />
+    <ClCompile Include="util\libf2c\cabs.c" />
+    <ClCompile Include="util\libf2c\close.c" />
+    <ClCompile Include="util\libf2c\ctype.c" />
+    <ClCompile Include="util\libf2c\c_abs.c" />
+    <ClCompile Include="util\libf2c\c_cos.c" />
+    <ClCompile Include="util\libf2c\c_div.c" />
+    <ClCompile Include="util\libf2c\c_exp.c" />
+    <ClCompile Include="util\libf2c\c_log.c" />
+    <ClCompile Include="util\libf2c\c_sin.c" />
+    <ClCompile Include="util\libf2c\c_sqrt.c" />
+    <ClCompile Include="util\libf2c\derfc_.c" />
+    <ClCompile Include="util\libf2c\derf_.c" />
+    <ClCompile Include="util\libf2c\dfe.c" />
+    <ClCompile Include="util\libf2c\dolio.c" />
+    <ClCompile Include="util\libf2c\dtime_.c" />
+    <ClCompile Include="util\libf2c\due.c" />
+    <ClCompile Include="util\libf2c\d_abs.c" />
+    <ClCompile Include="util\libf2c\d_acos.c" />
+    <ClCompile Include="util\libf2c\d_asin.c" />
+    <ClCompile Include="util\libf2c\d_atan.c" />
+    <ClCompile Include="util\libf2c\d_atn2.c" />
+    <ClCompile Include="util\libf2c\d_cnjg.c" />
+    <ClCompile Include="util\libf2c\d_cos.c" />
+    <ClCompile Include="util\libf2c\d_cosh.c" />
+    <ClCompile Include="util\libf2c\d_dim.c" />
+    <ClCompile Include="util\libf2c\d_exp.c" />
+    <ClCompile Include="util\libf2c\d_imag.c" />
+    <ClCompile Include="util\libf2c\d_int.c" />
+    <ClCompile Include="util\libf2c\d_lg10.c" />
+    <ClCompile Include="util\libf2c\d_log.c" />
+    <ClCompile Include="util\libf2c\d_mod.c" />
+    <ClCompile Include="util\libf2c\d_nint.c" />
+    <ClCompile Include="util\libf2c\d_prod.c" />
+    <ClCompile Include="util\libf2c\d_sign.c" />
+    <ClCompile Include="util\libf2c\d_sin.c" />
+    <ClCompile Include="util\libf2c\d_sinh.c" />
+    <ClCompile Include="util\libf2c\d_sqrt.c" />
+    <ClCompile Include="util\libf2c\d_tan.c" />
+    <ClCompile Include="util\libf2c\d_tanh.c" />
+    <ClCompile Include="util\libf2c\ef1asc_.c" />
+    <ClCompile Include="util\libf2c\ef1cmc_.c" />
+    <ClCompile Include="util\libf2c\endfile.c" />
+    <ClCompile Include="util\libf2c\erfc_.c" />
+    <ClCompile Include="util\libf2c\erf_.c" />
+    <ClCompile Include="util\libf2c\err.c" />
+    <ClCompile Include="util\libf2c\etime_.c" />
+    <ClCompile Include="util\libf2c\exit_.c" />
+    <ClCompile Include="util\libf2c\f77vers.c" />
+    <ClCompile Include="util\libf2c\f77_aloc.c" />
+    <ClCompile Include="util\libf2c\fmt.c" />
+    <ClCompile Include="util\libf2c\fmtlib.c" />
+    <ClCompile Include="util\libf2c\ftell64_.c" />
+    <ClCompile Include="util\libf2c\ftell_.c" />
+    <ClCompile Include="util\libf2c\getarg_.c" />
+    <ClCompile Include="util\libf2c\getenv_.c" />
+    <ClCompile Include="util\libf2c\hl_ge.c" />
+    <ClCompile Include="util\libf2c\hl_gt.c" />
+    <ClCompile Include="util\libf2c\hl_le.c" />
+    <ClCompile Include="util\libf2c\hl_lt.c" />
+    <ClCompile Include="util\libf2c\h_abs.c" />
+    <ClCompile Include="util\libf2c\h_dim.c" />
+    <ClCompile Include="util\libf2c\h_dnnt.c" />
+    <ClCompile Include="util\libf2c\h_indx.c" />
+    <ClCompile Include="util\libf2c\h_len.c" />
+    <ClCompile Include="util\libf2c\h_mod.c" />
+    <ClCompile Include="util\libf2c\h_nint.c" />
+    <ClCompile Include="util\libf2c\h_sign.c" />
+    <ClCompile Include="util\libf2c\i77vers.c" />
+    <ClCompile Include="util\libf2c\iargc_.c" />
+    <ClCompile Include="util\libf2c\iio.c" />
+    <ClCompile Include="util\libf2c\ilnw.c" />
+    <ClCompile Include="util\libf2c\inquire.c" />
+    <ClCompile Include="util\libf2c\i_abs.c" />
+    <ClCompile Include="util\libf2c\i_dim.c" />
+    <ClCompile Include="util\libf2c\i_dnnt.c" />
+    <ClCompile Include="util\libf2c\i_indx.c" />
+    <ClCompile Include="util\libf2c\i_len.c" />
+    <ClCompile Include="util\libf2c\i_mod.c" />
+    <ClCompile Include="util\libf2c\i_nint.c" />
+    <ClCompile Include="util\libf2c\i_sign.c" />
+    <ClCompile Include="util\libf2c\lbitbits.c" />
+    <ClCompile Include="util\libf2c\lbitshft.c" />
+    <ClCompile Include="util\libf2c\lread.c" />
+    <ClCompile Include="util\libf2c\lwrite.c" />
+    <ClCompile Include="util\libf2c\l_ge.c" />
+    <ClCompile Include="util\libf2c\l_gt.c" />
+    <ClCompile Include="util\libf2c\l_le.c" />
+    <ClCompile Include="util\libf2c\l_lt.c" />
+    <ClCompile Include="util\libf2c\main.c" />
+    <ClCompile Include="util\libf2c\open.c" />
+    <ClCompile Include="util\libf2c\pow_ci.c" />
+    <ClCompile Include="util\libf2c\pow_dd.c" />
+    <ClCompile Include="util\libf2c\pow_di.c" />
+    <ClCompile Include="util\libf2c\pow_hh.c" />
+    <ClCompile Include="util\libf2c\pow_ii.c" />
+    <ClCompile Include="util\libf2c\pow_qq.c" />
+    <ClCompile Include="util\libf2c\pow_ri.c" />
+    <ClCompile Include="util\libf2c\pow_zi.c" />
+    <ClCompile Include="util\libf2c\pow_zz.c" />
+    <ClCompile Include="util\libf2c\qbitbits.c" />
+    <ClCompile Include="util\libf2c\qbitshft.c" />
+    <ClCompile Include="util\libf2c\rdfmt.c" />
+    <ClCompile Include="util\libf2c\rewind.c" />
+    <ClCompile Include="util\libf2c\rsfe.c" />
+    <ClCompile Include="util\libf2c\rsli.c" />
+    <ClCompile Include="util\libf2c\rsne.c" />
+    <ClCompile Include="util\libf2c\r_abs.c" />
+    <ClCompile Include="util\libf2c\r_acos.c" />
+    <ClCompile Include="util\libf2c\r_asin.c" />
+    <ClCompile Include="util\libf2c\r_atan.c" />
+    <ClCompile Include="util\libf2c\r_atn2.c" />
+    <ClCompile Include="util\libf2c\r_cnjg.c" />
+    <ClCompile Include="util\libf2c\r_cos.c" />
+    <ClCompile Include="util\libf2c\r_cosh.c" />
+    <ClCompile Include="util\libf2c\r_dim.c" />
+    <ClCompile Include="util\libf2c\r_exp.c" />
+    <ClCompile Include="util\libf2c\r_imag.c" />
+    <ClCompile Include="util\libf2c\r_int.c" />
+    <ClCompile Include="util\libf2c\r_lg10.c" />
+    <ClCompile Include="util\libf2c\r_log.c" />
+    <ClCompile Include="util\libf2c\r_mod.c" />
+    <ClCompile Include="util\libf2c\r_nint.c" />
+    <ClCompile Include="util\libf2c\r_sign.c" />
+    <ClCompile Include="util\libf2c\r_sin.c" />
+    <ClCompile Include="util\libf2c\r_sinh.c" />
+    <ClCompile Include="util\libf2c\r_sqrt.c" />
+    <ClCompile Include="util\libf2c\r_tan.c" />
+    <ClCompile Include="util\libf2c\r_tanh.c" />
+    <ClCompile Include="util\libf2c\sfe.c" />
+    <ClCompile Include="util\libf2c\signal_.c" />
+    <ClCompile Include="util\libf2c\signbit.c" />
+    <ClCompile Include="util\libf2c\sig_die.c" />
+    <ClCompile Include="util\libf2c\sue.c" />
+    <ClCompile Include="util\libf2c\system_.c" />
+    <ClCompile Include="util\libf2c\s_cat.c" />
+    <ClCompile Include="util\libf2c\s_cmp.c" />
+    <ClCompile Include="util\libf2c\s_copy.c" />
+    <ClCompile Include="util\libf2c\s_paus.c" />
+    <ClCompile Include="util\libf2c\s_rnge.c" />
+    <ClCompile Include="util\libf2c\s_stop.c" />
+    <ClCompile Include="util\libf2c\typesize.c" />
+    <ClCompile Include="util\libf2c\uio.c" />
+    <ClCompile Include="util\libf2c\uninit.c" />
+    <ClCompile Include="util\libf2c\util.c" />
+    <ClCompile Include="util\libf2c\wref.c" />
+    <ClCompile Include="util\libf2c\wrtfmt.c" />
+    <ClCompile Include="util\libf2c\wsfe.c" />
+    <ClCompile Include="util\libf2c\wsle.c" />
+    <ClCompile Include="util\libf2c\wsne.c" />
+    <ClCompile Include="util\libf2c\xwsne.c" />
+    <ClCompile Include="util\libf2c\z_abs.c" />
+    <ClCompile Include="util\libf2c\z_cos.c" />
+    <ClCompile Include="util\libf2c\z_div.c" />
+    <ClCompile Include="util\libf2c\z_exp.c" />
+    <ClCompile Include="util\libf2c\z_log.c" />
+    <ClCompile Include="util\libf2c\z_sin.c" />
+    <ClCompile Include="util\libf2c\z_sqrt.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="util\libf2c\ctype.h" />
+    <ClInclude Include="util\libf2c\f2ch.h" />
+    <ClInclude Include="util\libf2c\fio.h" />
+    <ClInclude Include="util\libf2c\fmt.h" />
+    <ClInclude Include="util\libf2c\fp.h" />
+    <ClInclude Include="util\libf2c\lio.h" />
+    <ClInclude Include="util\libf2c\rawio.h" />
+    <ClInclude Include="util\libf2c\signal1.h" />
+    <ClInclude Include="util\libf2c\sysdep1.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{1F5A936F-0ECB-43BF-91F5-52CD86F496B8}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>ani3Dmba</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>$(ProjectDir)mba/;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>$(ProjectDir)mba/;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
