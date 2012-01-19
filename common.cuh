@@ -2,8 +2,8 @@
 #define __COMMON_CUH__
 
 /* Coalised read size (bytes) */
-#define COALISED_SIZE (64)
-#define COALISED_NUM(datatype) (COALISED_SIZE/(sizeof(datatype)))
+#define COALESCED_SIZE (64)
+#define COALESCED_NUM(datatype) (COALESCED_SIZE/(sizeof(datatype)))
 
 typedef uint32_t copy_unit;
 

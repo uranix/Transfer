@@ -8,8 +8,8 @@
 Computes r = (e_i, f) + (1/kappa nabla e_i, 1/kappa nabla f) - (e_i, I_p)
 	nP						: total vertices number
 	start[nP+1]				: start[i+1] - start[i] = number of tetrahedrons incidental to vertex i
-	idx[start[nP]]			: corresponding tetrahedron index
-	pos[start[nP]]			: local vertex index in tetradedron
+	idx[start[nP]]			: corresponding tetrahedron idx
+	pos[start[nP]]			: local vertex idx in tetradedron
 	mesh[nT]				: mesh
 	slm						: anglar harmonics total number. aslm = align_power(slm, COALISED_NUM(REAL))
 	omega[3*aslm*aslm]		: values part of <Omega_i Omega_j>_lm^lms. Symmetrical to i <-> j, lm <-> lms.
@@ -38,16 +38,16 @@ Assumed:
 
 #define ASLM_MAX (256)
 
-__global__ void volumePart(	index nP, index *start, index *idx, index *pos, tetrahedron *mesh, 
-							index slm, REAL *omega, index *omega_pos, REAL *f, REAL *r) {
+__global__ void volumePart(	idx nP, idx *start, idx *tetidx, idx *pos, tetrahedron *mesh, 
+							idx slm, REAL *omega, idx *omega_pos, REAL *f, REAL *r) {
 	__shared__ tetrahedron tetas;
 	__shared__ REAL sums_j[4*ASLM_MAX]; /* 3 -> 4 for align*/
-	index aslm = align_power(slm, COALISED_NUM(REAL));
-	index vertex = blockIdx.x + blockIdx.y * gridDim.x;
-	index lm = threadIdx.x;
+	idx aslm = align_power(slm, COALESCED_NUM(REAL));
+	idx vertex = blockIdx.x + blockIdx.y * gridDim.x;
+	idx lm = threadIdx.x;
 	REAL sum_i[3];
 	REAL *sum_j = &sums_j[4*lm];
-	index lo, hi;
+	idx lo, hi;
 	REAL fl[4];
 	REAL fc;
 
@@ -58,10 +58,10 @@ __global__ void volumePart(	index nP, index *start, index *idx, index *pos, tetr
 		__syncthreads();
 		tetrahedron *tet = &tetas;
 		copy_unit *dst = (copy_unit *)tet;
-		copy_unit *src = (copy_unit *)(mesh + idx[j]);
-		index local = pos[j];
+		copy_unit *src = (copy_unit *)(mesh + tetidx[j]);
+		idx local = pos[j];
 		
-		index copy_incr = blockDim.x;
+		idx copy_incr = blockDim.x;
 		for (int s=0, smax = sizeof(tetrahedron); s < smax; s += sizeof(copy_unit)*copy_incr, dst += copy_incr, src += copy_incr)
 			if (s + sizeof(copy_unit) * threadIdx.x < smax)
 				dst[threadIdx.x] = src[threadIdx.x];
@@ -88,7 +88,7 @@ __global__ void volumePart(	index nP, index *start, index *idx, index *pos, tetr
 		}
 		__syncthreads();
 		REAL rowsum;
-		index v = lm;
+		idx v = lm;
 		#pragma unroll
 		for (int row = 0; row < 3; row++, v += (aslm-slm)*aslm) {
 			rowsum = 0;
@@ -106,8 +106,8 @@ WORKS ONLY IF NORMAL IS (+/-1,0,0), (0,+/-1,0) or (0,0,+/-1).
 Computes r += int_{dG x 4pi} |Omega n(x)| e_i f d Omega dS
 	nP						: total vertices number
 	start[nP+1]				: start[i+1] - start[i] = number of faces incidental to vertex i
-	idx[start[nP]]			: corresponding face index
-	pos[start[nP]]			: local vertex index in face
+	idx[start[nP]]			: corresponding face idx
+	pos[start[nP]]			: local vertex idx in face
 	bnd[nT]					: boundary faces
 	slm						: anglar harmonics total number. aslm = align_power(slm, COALISED_NUM(REAL))
 	Ox,Oy,Oz[aslm*aslm]		: <|Omega_x|>, <|Omega_y|>, <|Omega_z|>.
@@ -125,17 +125,17 @@ Assumed:
 
 	shmem per block = 32*ASLM_MAX * blockDim.x + ? [__syncthreads()]
    */
-__global__ void surfacePart( index nP, index *start, index *idx, index *pos, face *bnd, 
-							 index slm, REAL *Ox, REAL *Oy, REAL *Oz, REAL *f, REAL *r) 
+__global__ void surfacePart( idx nP, idx *start, idx *faceidx, idx *pos, face *bnd, 
+							 idx slm, REAL *Ox, REAL *Oy, REAL *Oz, REAL *f, REAL *r) 
 {
 	__shared__ REAL fv[4*ASLM_MAX]; /* f1,f2,f3,fc */
 	REAL *On;
 	face triangle;
 
-	index aslm = align_power(slm, COALISED_NUM(REAL));	
-	index vertex = blockIdx.x + blockIdx.y * gridDim.x;
-	index lm = threadIdx.x;
-	index lo, hi;
+	idx aslm = align_power(slm, COALESCED_NUM(REAL));
+	idx vertex = blockIdx.x + blockIdx.y * gridDim.x;
+	idx lm = threadIdx.x;
+	idx lo, hi;
 
 	REAL sum = 0;
 	lo = start[vertex];
@@ -144,10 +144,10 @@ __global__ void surfacePart( index nP, index *start, index *idx, index *pos, fac
 		__syncthreads();
 		face *tr = &triangle;
 		copy_unit *dst = (copy_unit *)tr;
-		copy_unit *src = (copy_unit *)(bnd + idx[j]);
-		index local = pos[j];
+		copy_unit *src = (copy_unit *)(bnd + faceidx[j]);
+		idx local = pos[j];
 		
-		index copy_incr = blockDim.x;
+		idx copy_incr = blockDim.x;
 		for (int s=0, smax = sizeof(face); s < smax; s += sizeof(copy_unit)*copy_incr, dst += copy_incr, src += copy_incr)
 			if (s + sizeof(copy_unit) * threadIdx.x < smax)
 				dst[threadIdx.x] = src[threadIdx.x];
