@@ -2,10 +2,6 @@
 
 #include "kernels.cu"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 void *deviceAlloc(size_t size) {
 	void *ret;
 	cudaMalloc(&ret, size);
@@ -25,6 +21,3 @@ void computeRhs(MeshData *meshdata, AngularData *angdata, REAL *f, REAL *r) {
 		angdata->slm, angdata->Ox, angdata->Oy, angdata->Oz, f, r);
 }
 
-#ifdef __cplusplus
-}
-#endif

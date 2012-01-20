@@ -11,6 +11,8 @@ struct AngularData {
 	idx *omega_pos;
 
 	REAL *Ox, *Oy, *Oz;
+	AngularData(int maxk);
+	~AngularData();
 };
 
 #endif

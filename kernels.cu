@@ -11,7 +11,7 @@ Computes r = (e_i, f) + (1/kappa nabla e_i, 1/kappa nabla f) - (e_i, I_p)
 	idx[start[nP]]			: corresponding tetrahedron idx
 	pos[start[nP]]			: local vertex idx in tetradedron
 	mesh[nT]				: mesh
-	slm						: anglar harmonics total number. aslm = align_power(slm, COALISED_NUM(REAL))
+	slm						: anglar harmonics total number. aslm = align_power(slm, COALESCED_NUM(REAL))
 	omega[3*aslm*aslm]		: values part of <Omega_i Omega_j>_lm^lms. Symmetrical to i <-> j, lm <-> lms.
 							omega[i][j][lm][lms] = omega[3*aslm*aslm + aslm*lms + lm] when j = omega_pos[i][lms][lm], otherwise 0
 							- coalesced when read thread <-> lm
@@ -109,7 +109,7 @@ Computes r += int_{dG x 4pi} |Omega n(x)| e_i f d Omega dS
 	idx[start[nP]]			: corresponding face idx
 	pos[start[nP]]			: local vertex idx in face
 	bnd[nT]					: boundary faces
-	slm						: anglar harmonics total number. aslm = align_power(slm, COALISED_NUM(REAL))
+	slm						: anglar harmonics total number. aslm = align_power(slm, COALESCED_NUM(REAL))
 	Ox,Oy,Oz[aslm*aslm]		: <|Omega_x|>, <|Omega_y|>, <|Omega_z|>.
 	f[aslm*nP]				: degrees of freedom 
 							f[point][lm]=f[aslm*point + lm]. 

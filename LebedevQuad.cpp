@@ -1,6 +1,6 @@
 #include <math.h>
 
-#include "lebedev.h"
+#include "LebedevQuad.h"
 
 #define NMAX 65
 #define MMAX ((NMAX*2+3)*(NMAX*2+3)/3)
@@ -89,7 +89,7 @@ int gen_oh ( int code, double a, double b, double v, double *x, double *y,
 */
 {
   double c;
-  int n;
+  int n = -1;
 
   if ( code == 1 )
   {
@@ -243,185 +243,7 @@ int gen_oh ( int code, double a, double b, double v, double *x, double *y,
     x[47] =  -c; y[47] =  -b; z[47] =  -a; w[47] = v;
     n = 48;
   }
-  else
-  {
-    fprintf ( stderr, "\n" );
-    fprintf ( stderr, "GEN_OH - Fatal error!\n" );
-    fprintf ( stderr, "  Illegal value of code.\n" );
-    exit ( 1 );
-  }
   return n;
-}
-/******************************************************************************/
-
-int ld_by_order ( int order, double *x, double *y, double *z, double *w )
-
-/******************************************************************************/
-/*
-  Purpose:
-
-    LD_BY_ORDER returns a Lebedev angular grid given its order.
-
-  Discussion:
-
-    Only a certain set of such rules are available through this function.
-
-  Modified:
-
-    13 September 2010
-
-  Author:
-
-    Dmitri Laikov
-
-  Reference:
-
-    Vyacheslav Lebedev, Dmitri Laikov,
-    A quadrature formula for the sphere of the 131st
-    algebraic order of accuracy,
-    Russian Academy of Sciences Doklady Mathematics,
-    Volume 59, Number 3, 1999, pages 477-481.
-
-  Parameters:
-
-    Input, int ORDER, the order of the rule.
-
-    Output, double X[ORDER], Y[ORDER], Z[ORDER], W[ORDER], the coordinates
-    and weights of the points.
-*/
-{
-  if ( order == 6 )
-  {
-    ld0006 ( x, y, z, w );
-  }
-  else if ( order == 14 )
-  {
-    ld0014 ( x, y, z, w );
-  }
-  else if ( order == 26 )
-  {
-    ld0026 ( x, y, z, w );
-  }
-  else if ( order == 38 )
-  {
-    ld0038 ( x, y, z, w );
-  }
-  else if ( order == 50 )
-  {
-    ld0050 ( x, y, z, w );
-  }
-  else if ( order == 74 )
-  {
-    ld0074 ( x, y, z, w );
-  }
-  else if ( order == 86 )
-  {
-    ld0086 ( x, y, z, w );
-  }
-  else if ( order == 110 )
-  {
-    ld0110 ( x, y, z, w );
-  }
-  else if ( order == 146 )
-  {
-    ld0146 ( x, y, z, w );
-  }
-  else if ( order == 170 )
-  {
-    ld0170 ( x, y, z, w );
-  }
-  else if ( order == 194 )
-  {
-    ld0194 ( x, y, z, w );
-  }
-  else if ( order == 230 )
-  {
-    ld0230 ( x, y, z, w );
-  }
-  else if ( order == 266 )
-  {
-    ld0266 ( x, y, z, w );
-  }
-  else if ( order == 302 )
-  {
-    ld0302 ( x, y, z, w );
-  }
-  else if ( order == 350 )
-  {
-    ld0350 ( x, y, z, w );
-  }
-  else if ( order == 434 )
-  {
-    ld0434 ( x, y, z, w );
-  }
-  else if ( order == 590 )
-  {
-    ld0590 ( x, y, z, w );
-  }
-  else if ( order == 770 )
-  {
-    ld0770 ( x, y, z, w );
-  }
-  else if ( order == 974 )
-  {
-     ld0974 ( x, y, z, w );
-  }
-  else if ( order == 1202 )
-  {
-    ld1202 ( x, y, z, w );
-  }
-  else if ( order == 1454 )
-  {
-    ld1454 ( x, y, z, w );
-  }
-  else if ( order == 1730 )
-  {
-    ld1730 ( x, y, z, w );
-  }
-  else if ( order == 2030 )
-  {
-    ld2030 ( x, y, z, w );
-  }
-  else if ( order == 2354 )
-  {
-    ld2354 ( x, y, z, w );
-  }
-  else if ( order == 2702 )
-  {
-    ld2702 ( x, y, z, w );
-  }
-  else if ( order == 3074 )
-  {
-    ld3074 ( x, y, z, w );
-  }
-  else if ( order == 3470 )
-  {
-    ld3470 ( x, y, z, w );
-  }
-  else if ( order == 3890 )
-  {
-    ld3890 ( x, y, z, w );
-  }
-  else if ( order == 4334 )
-  {
-    ld4334 ( x, y, z, w );
-  }
-  else if ( order == 4802 )
-  {
-    ld4802 ( x, y, z, w );
-  }
-  else if ( order == 5294 )
-  {
-    ld5294 ( x, y, z, w );
-  }
-  else if ( order == 5810 )
-  {
-    ld5810 ( x, y, z, w );
-  }
-  else
-	  return -1;
-
-  return 0;
 }
 /******************************************************************************/
 
@@ -6272,3 +6094,191 @@ void ld5810 ( double *x, double *y, double *z, double *w )
   return;
 }
 /******************************************************************************/
+
+int ld_by_order ( int order, double *x, double *y, double *z, double *w )
+
+/******************************************************************************/
+/*
+  Purpose:
+
+    LD_BY_ORDER returns a Lebedev angular grid given its order.
+
+  Discussion:
+
+    Only a certain set of such rules are available through this function.
+
+  Modified:
+
+    13 September 2010
+
+  Author:
+
+    Dmitri Laikov
+
+  Reference:
+
+    Vyacheslav Lebedev, Dmitri Laikov,
+    A quadrature formula for the sphere of the 131st
+    algebraic order of accuracy,
+    Russian Academy of Sciences Doklady Mathematics,
+    Volume 59, Number 3, 1999, pages 477-481.
+
+  Parameters:
+
+    Input, int ORDER, the order of the rule.
+
+    Output, double X[ORDER], Y[ORDER], Z[ORDER], W[ORDER], the coordinates
+    and weights of the points.
+*/
+{
+  if ( order == 6 )
+  {
+    ld0006 ( x, y, z, w );
+  }
+  else if ( order == 14 )
+  {
+    ld0014 ( x, y, z, w );
+  }
+  else if ( order == 26 )
+  {
+    ld0026 ( x, y, z, w );
+  }
+  else if ( order == 38 )
+  {
+    ld0038 ( x, y, z, w );
+  }
+  else if ( order == 50 )
+  {
+    ld0050 ( x, y, z, w );
+  }
+  else if ( order == 74 )
+  {
+    ld0074 ( x, y, z, w );
+  }
+  else if ( order == 86 )
+  {
+    ld0086 ( x, y, z, w );
+  }
+  else if ( order == 110 )
+  {
+    ld0110 ( x, y, z, w );
+  }
+  else if ( order == 146 )
+  {
+    ld0146 ( x, y, z, w );
+  }
+  else if ( order == 170 )
+  {
+    ld0170 ( x, y, z, w );
+  }
+  else if ( order == 194 )
+  {
+    ld0194 ( x, y, z, w );
+  }
+  else if ( order == 230 )
+  {
+    ld0230 ( x, y, z, w );
+  }
+  else if ( order == 266 )
+  {
+    ld0266 ( x, y, z, w );
+  }
+  else if ( order == 302 )
+  {
+    ld0302 ( x, y, z, w );
+  }
+  else if ( order == 350 )
+  {
+    ld0350 ( x, y, z, w );
+  }
+  else if ( order == 434 )
+  {
+    ld0434 ( x, y, z, w );
+  }
+  else if ( order == 590 )
+  {
+    ld0590 ( x, y, z, w );
+  }
+  else if ( order == 770 )
+  {
+    ld0770 ( x, y, z, w );
+  }
+  else if ( order == 974 )
+  {
+     ld0974 ( x, y, z, w );
+  }
+  else if ( order == 1202 )
+  {
+    ld1202 ( x, y, z, w );
+  }
+  else if ( order == 1454 )
+  {
+    ld1454 ( x, y, z, w );
+  }
+  else if ( order == 1730 )
+  {
+    ld1730 ( x, y, z, w );
+  }
+  else if ( order == 2030 )
+  {
+    ld2030 ( x, y, z, w );
+  }
+  else if ( order == 2354 )
+  {
+    ld2354 ( x, y, z, w );
+  }
+  else if ( order == 2702 )
+  {
+    ld2702 ( x, y, z, w );
+  }
+  else if ( order == 3074 )
+  {
+    ld3074 ( x, y, z, w );
+  }
+  else if ( order == 3470 )
+  {
+    ld3470 ( x, y, z, w );
+  }
+  else if ( order == 3890 )
+  {
+    ld3890 ( x, y, z, w );
+  }
+  else if ( order == 4334 )
+  {
+    ld4334 ( x, y, z, w );
+  }
+  else if ( order == 4802 )
+  {
+    ld4802 ( x, y, z, w );
+  }
+  else if ( order == 5294 )
+  {
+    ld5294 ( x, y, z, w );
+  }
+  else if ( order == 5810 )
+  {
+    ld5810 ( x, y, z, w );
+  }
+  else
+	  return -1;
+
+  return 0;
+}
+/******************************************************************************/
+
+LebedevQuad::LebedevQuad(int mindegree) {
+	order = order_by_precision(mindegree);
+	x = new double[order];
+	y = new double[order];
+	z = new double[order];
+	w = new double[order];
+
+	ld_by_order(order, x, y, z, w);
+}
+
+LebedevQuad::~LebedevQuad() {
+	delete[] x;
+	delete[] y;
+	delete[] z;
+	delete[] w;
+}
