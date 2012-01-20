@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include "AngularData.h"
+#include "HemiQuad.h"
 
 void torat(double x, int *rp, int *rq) {
 	int p = floor(x), p_ = 1;
@@ -38,5 +39,36 @@ char *frac(double x) {
 
 int main() {
 	AngularData dat(1);
+	printf("<Ox>\n");
+	for (idx i=0; i<dat.slm; i++) {
+		for (idx j=0; j<dat.slm; j++) {
+			idx s = i * dat.slm + j;
+			printf("%8.4f ", dat.Ox[s]);
+		}
+		printf("\n");
+	}
+	printf("<Oy>\n");
+	for (idx i=0; i<dat.slm; i++) {
+		for (idx j=0; j<dat.slm; j++) {
+			idx s = i * dat.slm + j;
+			printf("%8.4f ", dat.Oy[s]);
+		}
+		printf("\n");
+	}
+	printf("<Oz>\n");
+	for (idx i=0; i<dat.slm; i++) {
+		for (idx j=0; j<dat.slm; j++) {
+			idx s = i * dat.slm + j;
+			printf("%8.4f ", dat.Oz[s]);
+		}
+		printf("\n");
+	}
+
+	HemiQuad t(10);
+	double sum = 0;
+	for (int i=0; i<t.order; i++) {
+		sum += t.w[i] * t.z[i] * (t.x[i] * t.x[i] + t.y[i] + t.z[i]);
+	}
+	printf("S = %e\n", sum);
 	return 0;
 }
