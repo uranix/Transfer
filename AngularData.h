@@ -15,4 +15,15 @@ struct AngularData {
 	~AngularData();
 };
 
+struct DeviceAngularData {
+	idx slm;
+
+	REAL *omega;
+	idx *omega_pos;
+
+	REAL *Ox, *Oy, *Oz;
+	DeviceAngularData(const AngularData &);
+	~DeviceAngularData();
+};
+
 #endif
