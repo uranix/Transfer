@@ -6,7 +6,7 @@
 #include "face.h"
 
 struct MeshData {
-	idx nPlow, nPhigh; // nP = nPlow * nPhigh
+	idx nP, nT, nF;
 
 	idx *tetstart;
 	idx *tetidx;
@@ -17,6 +17,26 @@ struct MeshData {
 	idx *faceidx;
 	idx *facepos;
 	face *bnd;
+	MeshData(const MeshData &);
+	~MeshData();
+};
+
+struct DeviceMeshData {
+	idx nPlow, nPhigh; // nP < nPlow * nPhigh
+
+	idx *tetstart;
+	idx *tetidx;
+	idx *tetpos;
+	tetrahedron *mesh;
+
+	idx *facestart;
+	idx *faceidx;
+	idx *facepos;
+	face *bnd;
+	DeviceMeshData(const MeshData &);
+	~DeviceMeshData();
+private:
+	DeviceMeshData();
 };
 
 #endif

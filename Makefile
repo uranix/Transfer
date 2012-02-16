@@ -22,7 +22,7 @@ all: main
 %.o : %.cu
 	$(NVCC) $(NVCCFLAGS) -Xptxas "$(PTXFLAGS)" -c $<
 
-main: main.o wrapper.o LebedevQuad.o Spherical.o AngularData.o HemiQuad.o
+main: main.o wrapper.o DeviceAngularData.o DeviceMeshData.o LebedevQuad.o Spherical.o AngularData.o HemiQuad.o
 	gcc $(LDFLAGS) -o $@ $^ $(LIBS)
 
 clean: 

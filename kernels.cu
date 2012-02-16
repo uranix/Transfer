@@ -1,6 +1,7 @@
 #include "util.h"
-#include "tetrahedron.h"
-#include "face.h"
+
+#include "MeshData.h"
+#include "AngularData.h"
 
 #include "common.cuh"
 
@@ -38,11 +39,23 @@ Assumed:
 
 #define ASLM_MAX (256)
 
-__global__ void volumePart(	idx nP, idx *start, idx *tetidx, idx *pos, tetrahedron *mesh, 
-							idx slm, REAL *omega, idx *omega_pos, REAL *f, REAL *r) {
+__global__ void volumePart(	DeviceMeshData md,
+							DeviceAngularData ad,
+							REAL *f,
+							REAL *r) {
 	__shared__ tetrahedron tetas;
 	__shared__ REAL sums_j[4*ASLM_MAX]; /* 3 -> 4 for align*/
-	idx aslm = align_power(slm, COALESCED_NUM(REAL));
+
+	idx slm = ad.slm;
+	idx aslm = ad.aslm;
+	REAL *omega = ad.omega;
+	idx *omega_pos = ad.omega_pos;
+
+	idx *start = md.tetstart;
+	idx *tetidx = md.tetidx;
+	idx *pos = md.tetpos;
+	tetrahedron *mesh = md.mesh; 
+
 	idx vertex = blockIdx.x + blockIdx.y * gridDim.x;
 	idx lm = threadIdx.x;
 	REAL sum_i[3];
@@ -90,11 +103,12 @@ __global__ void volumePart(	idx nP, idx *start, idx *tetidx, idx *pos, tetrahedr
 		REAL rowsum;
 		idx v = lm;
 		#pragma unroll
-		for (int row = 0; row < 3; row++, v += (aslm-slm)*aslm) {
+		for (int row = 0; row < 3; row++) {
 			rowsum = 0;
 			for (int lms = 0; lms < slm; lms++, v += aslm) {
 				rowsum += omega[v] * sums_j[4*lms + omega_pos[v]];
 			}
+			v += (aslm-slm)*aslm;
 			sum += rowsum * sum_i[row];
 		}
 	}
@@ -108,7 +122,7 @@ Computes r += int_{dG x 4pi} |Omega n(x)| e_i f d Omega dS
 	start[nP+1]				: start[i+1] - start[i] = number of faces incidental to vertex i
 	idx[start[nP]]			: corresponding face idx
 	pos[start[nP]]			: local vertex idx in face
-	bnd[nT]					: boundary faces
+	bnd[nF]					: boundary faces
 	slm						: anglar harmonics total number. aslm = align_power(slm, COALESCED_NUM(REAL))
 	Ox,Oy,Oz[aslm*aslm]		: <|Omega_x|>, <|Omega_y|>, <|Omega_z|>.
 	f[aslm*nP]				: degrees of freedom 
@@ -125,14 +139,26 @@ Assumed:
 
 	shmem per block = 32*ASLM_MAX * blockDim.x + ? [__syncthreads()]
    */
-__global__ void surfacePart( idx nP, idx *start, idx *faceidx, idx *pos, face *bnd, 
-							 idx slm, REAL *Ox, REAL *Oy, REAL *Oz, REAL *f, REAL *r) 
+__global__ void surfacePart( DeviceMeshData md,
+							 DeviceAngularData ad,
+							 REAL *f, 
+							 REAL *r) 
 {
 	__shared__ REAL fv[4*ASLM_MAX]; /* f1,f2,f3,fc */
 	REAL *On;
 	face triangle;
 
-	idx aslm = align_power(slm, COALESCED_NUM(REAL));
+	idx *start = md.facestart;
+	idx *faceidx = md.faceidx;
+	idx *pos = md.facepos;
+	face *bnd = md.bnd;
+
+	idx slm = ad.slm; 
+	idx aslm = ad.aslm;
+	REAL *Ox = ad.Ox;
+	REAL *Oy = ad.Oy;
+	REAL *Oz = ad.Oz;
+
 	idx vertex = blockIdx.x + blockIdx.y * gridDim.x;
 	idx lm = threadIdx.x;
 	idx lo, hi;
