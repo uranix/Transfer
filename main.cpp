@@ -64,11 +64,5 @@ int main() {
 		printf("\n");
 	}
 
-	HemiQuad t(10);
-	double sum = 0;
-	for (int i=0; i<t.order; i++) {
-		sum += t.w[i] * t.z[i] * (t.x[i] * t.x[i] + t.y[i] + t.z[i]);
-	}
-	printf("S = %e\n", sum);
 	return 0;
 }
