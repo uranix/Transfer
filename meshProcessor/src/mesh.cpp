@@ -1,17 +1,14 @@
 #include "mesh.h"
 
-// OK. There is no way to make this non-static. Thanks to ani3D team
-// Don't try to mesh something in parallel or so
-double Mesh::meshSize = 1;
-
 #include "tri_face.h"
 #include "tetrahedron.h"
 #include "list.h"
 
 #include "stdint.h"
 #include <stdlib.h>
+#include <string.h>
 
-void Mesh::fromAft(int nV, int nB, int nT, double *vert, int *bnd, int *tet, int *bndmat, int *tetmat) {
+void Mesh::fromVol(int nV, int nB, int nT, double *vert, int *bnd, int *tet, int *bndmat, int *tetmat) {
 	nVert = nV;
 	nElems = nT;
 	nFaces = 4*nT + nB;
@@ -81,8 +78,145 @@ out:
 	list_deallocate(vert2face);
 }
 
-Mesh::Mesh(int nV, int nB, int nT, double *vert, int *bnd, int *tet, int *bndmat, int *tetmat) {
-	fromAft(nV, nB, nT, vert, bnd, tet, bndmat, tetmat);
+Mesh::Mesh(char *fn) {
+	enum State {
+		ST_NORM,
+		ST_SURF_INIT,
+		ST_SURF_DATA,
+		ST_VOL_INIT,
+		ST_VOL_DATA,
+		ST_PTS_INIT,
+		ST_PTS_DATA,
+		ST_CURVE_INIT,
+		ST_CURVE_DATA,
+		ST_STOP,
+	} state = ST_NORM;
+	int i, cnt;
+
+	FILE *f = fopen(fn, "r");
+	char buf[1024];
+	int nV, nB, nT;
+	double *vert = 0;
+	int *bnd = 0, *tet = 0, *bndmat = 0, *tetmat = 0;
+
+	while (fgets(buf, 1024, f)) {
+		if (buf[0]=='#')
+			continue;
+		if (!strncmp(buf, "endmesh", 7))
+			if (state != ST_NORM) {
+				fprintf(stderr, "Unexpected endmesh signature\n");
+				break;
+			} else {
+				state = ST_STOP;
+				break;
+			}
+		if (!strncmp(buf, "surfaceelements", 15))
+			if (state != ST_NORM) {
+				fprintf(stderr, "Unexpected surfaceelements section\n");
+				break;
+			} else {
+				state = ST_SURF_INIT;
+				continue;
+			}
+		if (!strncmp(buf, "points", 6))
+			if (state != ST_NORM) {
+				fprintf(stderr, "Unexpected points section\n");
+				break;
+			} else {
+				state = ST_PTS_INIT;
+				continue;
+			}
+		if (!strncmp(buf, "volumeelements", 14))
+			if (state != ST_NORM) {
+				fprintf(stderr, "Unexpected volumeelements section\n");
+				break;
+			} else {
+				state = ST_VOL_INIT;
+				continue;
+			}
+		if (!strncmp(buf, "edgesegmentsgi2", 15))
+			if (state != ST_NORM) {
+				fprintf(stderr, "Unexpected edgesegmentsgi2 section\n");
+				break;
+			} else {
+				state = ST_CURVE_INIT;
+				continue;
+			}
+		if (state == ST_PTS_INIT) {
+			nV = cnt = atoi(buf);
+			vert = new double [3*nV];
+			i = 0;
+			state = ST_PTS_DATA;
+			continue;
+		}
+		if (state == ST_VOL_INIT) {
+			nT = cnt = atoi(buf);
+			tet = new int [4*nT];
+			tetmat = new int [nT];
+			i = 0;
+			state = ST_VOL_DATA;
+			continue;
+		}
+		if (state == ST_SURF_INIT) {
+			nB = cnt = atoi(buf);
+			bnd = new int [3*nB];
+			bndmat = new int [nB];
+			i = 0;
+			state = ST_SURF_DATA;
+			continue;
+		}
+		if (state == ST_CURVE_INIT) {
+			cnt = atoi(buf);
+			state = ST_CURVE_DATA;
+			i = 0;
+			/* Just ignore it */
+			continue;
+		};
+		if (state == ST_PTS_DATA) {
+			sscanf(buf, "%ld %ld %ld", vert + 3*i, vert + 3*i + 1, vert + 3*i + 2);
+			if (++i == cnt)
+				state = ST_NORM;
+			continue;
+		}
+		if (state == ST_VOL_DATA) {
+			int np;
+			sscanf(buf, "%d %d %d %d %d %d", tetmat + i, &np, 
+				tetmat + 4*i, tetmat + 4*i + 1, tetmat + 4*i + 2, tetmat + 4*i + 3);
+			if (np != 4) {
+				fprintf(stderr, "high-order tetrahedrons not implemented\n");
+			}
+			if (++i == cnt)
+				state = ST_NORM;
+			continue;
+		}
+		if (state == ST_SURF_DATA) {
+			int sn, domin, domout, np;
+			sscanf(buf, "%d %d %d %d %d %d %d %d", &sn, bndmat + i, &domin, &domout, &np, 
+				bnd + 3*i, bnd + 3*i + 1, bnd + 3*i + 2);
+			if (np != 3) {
+				fprintf(stderr, "high-order faces not implemented\n");
+			}
+			if (++i == cnt)
+				state = ST_NORM;
+			continue;
+		}
+		if (state == ST_CURVE_DATA) {
+			if (++i == cnt)
+				state = ST_NORM;
+			continue;
+		}
+	}
+	if (state == ST_STOP) {
+		fromVol(nV, nB, nT, vert, bnd, tet, bndmat, tetmat);
+	}
+	else {
+		/* Set Mesh object to valid state so ~Mesh() could safely destroy it */
+	}
+	if (vert) delete[] vert;
+	if (bnd) delete[] bnd;
+	if (bndmat) delete[] bndmat;
+	if (tet) delete[] tet;
+	if (tetmat) delete[] tetmat;
 }
 
 void Mesh::saveVtk(char *fn) {
@@ -128,198 +262,6 @@ void Mesh::saveVtk(char *fn) {
 	for (int i=0; i<nVert; i++)
 		fprintf(f, "%2.10e\n", vertices[i]->r.norm());
 	fclose(f);
-}
-
-void Mesh::saveBmf(char *fn) {
-	FILE *f = fopen(fn, "wb");
-	bool bits32 = sizeof(int) == 4;
-	if (bits32) {
-		int magic = *(int *)"BMF";
-		fwrite(&magic, sizeof(magic), 1, f);
-	} else {
-		int magic = *(int *)"BMF64\0\0";
-		fwrite(&magic, sizeof(magic), 1, f);
-	}
-	fwrite(&nVert, sizeof(nVert), 1, f);
-	fwrite(&nFaces, sizeof(nFaces), 1, f);
-	fwrite(&nElems, sizeof(nElems), 1, f);
-	for (int i=0; i<nVert; i++)
-		vertices[i]->r.serialize(f);
-	int facecount[FC_TYPE_END] = {0};
-	for (int i=0; i<nFaces; i++)
-		facecount[faces[i]->type]++;
-	facecount[0] = FC_TYPE_END;
-	fwrite(facecount, sizeof(int), FC_TYPE_END, f);
-	for (int i=0; i<nFaces; i++) {
-		fwrite(&faces[i]->type, sizeof(faces[i]->type), 1, f);
-		switch (faces[i]->type) {
-			case FC_TRIANGLE: {
-				TriFace *face = (TriFace *)faces[i];
-				int p1 = face->p[0]->index,
-					p2 = face->p[1]->index,
-					p3 = face->p[2]->index,
-					flip = face->flip->index,
-					elem = face->element ? face->element->index : -face->borderType;
-				fwrite(&p1, sizeof(p1), 1, f);
-				fwrite(&p2, sizeof(p2), 1, f);
-				fwrite(&p3, sizeof(p3), 1, f);
-				fwrite(&flip, sizeof(flip), 1, f);
-				fwrite(&elem, sizeof(elem), 1, f);
-			} break;
-			default:
-				throw "Face type not yet implemented";
-		}
-	}
-	int elemcount[EL_TYPE_END] = {0};
-	for (int i=0; i<nElems; i++)
-		elemcount[elements[i]->type]++;
-	elemcount[0] = EL_TYPE_END;
-	fwrite(elemcount, sizeof(int), EL_TYPE_END, f);
-	for (int i=0; i<nElems; i++) {
-		fwrite(&elements[i]->type, sizeof(elements[i]->type), 1, f);
-		switch (elements[i]->type) {
-			case EL_TETRAHEDRON: {
-				Tetrahedron *elem = (Tetrahedron *)elements[i];
-				int p1 = elem->p[0]->index,
-					p2 = elem->p[1]->index,
-					p3 = elem->p[2]->index,
-					p4 = elem->p[3]->index,
-					f1 = elem->f[0]->index,
-					f2 = elem->f[1]->index,
-					f3 = elem->f[2]->index,
-					f4 = elem->f[3]->index,
-					region = elem->region;
-				fwrite(&p1, sizeof(p1), 1, f);
-				fwrite(&p2, sizeof(p2), 1, f);
-				fwrite(&p3, sizeof(p3), 1, f);
-				fwrite(&p4, sizeof(p4), 1, f);
-				
-				fwrite(&f1, sizeof(f1), 1, f);
-				fwrite(&f2, sizeof(f2), 1, f);
-				fwrite(&f3, sizeof(f3), 1, f);
-				fwrite(&f4, sizeof(f4), 1, f);
-
-				fwrite(&region, sizeof(region), 1, f);
-			} break;
-			default:
-				throw "Element type not yet implemented";
-		}
-	}
-	fclose(f);
-}
-
-Mesh::Mesh(char *fn) {
-	FILE *f = fopen(fn, "rb");
-	bool bits32 = sizeof(int) == 4;
-	if (bits32) {
-		char sig[4];
-		fread(sig, 4, 1, f);
-		if (*(int *)sig != *(int *)"BMF")
-			throw "Mesh format error";
-	} else {
-		char sig[8];
-		fread(sig, 8, 1, f);
-		if (*(int *)sig != *(int *)"BMF64\0\0") {
-			if (*(int32_t *)sig != *(int32_t *)"BMF")
-				throw "32-bit mesh is unsupported on 64-bit platform";
-			else
-				throw "Mesh format error";
-		}
-	}
-	fread(&nVert, sizeof(nVert), 1, f);
-	fread(&nFaces, sizeof(nFaces), 1, f);
-	fread(&nElems, sizeof(nElems), 1, f);
-
-	vertices = new Vertex *[nVert];
-	elements = new Element*[nElems];
-	faces = new Face*[nFaces];
-
-	memory = 0;
-
-	Vertex *vertplace = (Vertex *)new char[sizeof(Vertex) * nVert];
-	addHead<char *>((char *)vertplace, &memory);
-
-	for (int i=0; i<nVert; i++) {
-		Vector r(f);
-		vertices[i] = new(vertplace + i) Vertex(i, r);
-	}
-	int facecount[FC_TYPE_END];
-	fread(facecount, sizeof(int), 1, f);
-	if (facecount[0] > FC_TYPE_END) 
-		throw "Unknown face types";
-	fread(facecount+1, sizeof(int), facecount[0]-1, f);
-
-	char *faceplace[FC_TYPE_END] = {0};
-
-	for (int i=0; i<nFaces; i++) {
-		int type, flip;
-		fread(&type, sizeof(type), 1, f);
-		switch (type) {
-			case FC_TRIANGLE: {
-				if (!faceplace[type]) {
-					faceplace[type] = new char[sizeof(TriFace) * facecount[type]];
-					addHead<char *>((char *)faceplace[type], &memory);
-				}
-				TriFace *face = (TriFace *)faceplace[type];
-				faceplace[type] += sizeof(TriFace);
-				int p1, p2,	p3, elem;
-				fread(&p1, sizeof(p1), 1, f);
-				fread(&p2, sizeof(p2), 1, f);
-				fread(&p3, sizeof(p3), 1, f);
-				fread(&flip, sizeof(flip), 1, f);
-				fread(&elem, sizeof(elem), 1, f);
-				faces[i] = new(face) TriFace(i, vertices[p1], vertices[p2], vertices[p3], 0, elem<0?-elem:-1);
-			} break;
-			default:
-				throw "Face type not yet implemented";
-		}
-		if (flip < i) {
-			faces[i]->setFlip(faces[flip]);
-			faces[flip]->setFlip(faces[i]);
-		}
-	}
-
-	int elemcount[EL_TYPE_END];
-	fread(elemcount, sizeof(int), 1, f);
-	if (elemcount[0] > EL_TYPE_END) 
-		throw "Unknown element types";
-	fread(elemcount+1, sizeof(int), elemcount[0]-1, f);
-
-	char *elemplace[EL_TYPE_END] = {0};
-
-	for (int i=0; i<nElems; i++) {
-		int type;
-		fread(&type, sizeof(type), 1, f);
-
-		switch (type) {
-			case EL_TETRAHEDRON: {
-				if (!elemplace[type]) {
-					elemplace[type] = new char[sizeof(Tetrahedron) * elemcount[type]];
-					addHead<char *>((char *)elemplace[type], &memory);
-				}
-				Tetrahedron *elem = (Tetrahedron *)elemplace[type];
-				elemplace[type] += sizeof(Tetrahedron);
-				int p1, p2, p3, p4, f1, f2, f3, f4, region;
-
-				fread(&p1, sizeof(p1), 1, f);
-				fread(&p2, sizeof(p2), 1, f);
-				fread(&p3, sizeof(p3), 1, f);
-				fread(&p4, sizeof(p4), 1, f);
-				
-				fread(&f1, sizeof(f1), 1, f);
-				fread(&f2, sizeof(f2), 1, f);
-				fread(&f3, sizeof(f3), 1, f);
-				fread(&f4, sizeof(f4), 1, f);
-
-				fread(&region, sizeof(region), 1, f);
-
-				elements[i] = new(elem) Tetrahedron(i, vertices[p1], vertices[p2], vertices[p3], vertices[p4], region, 
-													(TriFace *)faces[f1], (TriFace *)faces[f2], (TriFace *)faces[f3], (TriFace *)faces[f4]);
-			} break;
-			default:
-				throw "Element type not yet implemented";
-		}
-	}
 }
 
 Mesh::~Mesh() {
@@ -411,100 +353,16 @@ bool Mesh::check() {
 	if (!lastcheck)
 		fprintf(stderr, "Element with negative volume\n");
 
+	lastcheck = true;
+	for (int i=0; i<nFaces; i++) {
+		Vector r(faces[i]->center);
+		r.sub(faces[i]->element->center);
+		lastcheck &= faces[i]->normal.dot(r) > 0;
+	}
+	ok &= lastcheck;
+	if (!lastcheck)
+		fprintf(stderr, "Element with normal directed inside\n");
+
+
 	return ok;
-}
-
-Mesh::Mesh(const Front *front, double meshsize, bool fixShape, int nnV, int nnF, int nnT) {
-	int    nF = front->nFaces, nV = front->nVert, nT = 0;
-	int    *facefront = 0, *facedup = 0, *facematerial  = 0, *facematdup = 0;
-	int    *tetra = 0, *tetramaterial = 0;
-	double *vertexdup = 0;
-	int    r;
-
-	/* TODO malloc/free -> new/delete */
-
-	vertexdup     = new double[3 * nnV];    // for running front & Mesh(...)
-	facefront     = new int[3*nnF];    // for running front
-	facematerial  = new int[  nnF];    // for running front
-	facedup       = new int[3*front->nFaces]; // for Mesh(...)
-	facematdup    = new int[  front->nFaces]; // for Mesh(...)
-	tetra         = new int[4*nnT];    // for Mesh(...)
-	tetramaterial = new int[  nnT];    // for Mesh(...)
-
-	memcpy(vertexdup, front->vertex, 3*sizeof(double)*front->nVert);
-	memcpy(facedup, front->face, 3*sizeof(int)*front->nFaces);
-
-	for (int i=0; i < front->nFaces; i++) {
-		facedup[3*i+0]--;
-		facedup[3*i+1]--;
-		facedup[3*i+2]--;
-		facematdup[i] = 1;
-	}
-	memcpy(facefront, facedup, 3*sizeof(int)*front->nFaces);
-	memcpy(facematerial, facematdup, sizeof(int)*front->nFaces);
-
-	meshSize = meshsize;
-	r = mesh_3d_aft_func(&nV, vertexdup, &nF, facefront, facematerial, &nT, tetra, tetramaterial, nnV, nnF, nnT, usersize);
-	if (r!=0)  {
-		// Meshing failed
-		throw "mesh_3d_aft_func: failed";
-	}
-
-	if (fixShape) {
-		/* Restore initial front */
-		nF = front->nFaces;
-		memcpy(facefront, facedup, 3*sizeof(int)*front->nFaces);
-		memcpy(facematerial, facematdup, sizeof(int)*front->nFaces);
-
-		int *ifv = new int[nF];
-		for (int i=0; i<nF; i++) {
-			ifv[i] = i+1;
-			facefront[3*i+0]++;
-			facefront[3*i+1]++;
-			facefront[3*i+2]++;
-		}
-		for (int i=0; i<nT; i++) {
-			tetra[4*i+0]++;
-			tetra[4*i+1]++;
-			tetra[4*i+2]++;
-			tetra[4*i+3]++;
-		}
-
-		const int maxWr = 10000000, maxWi = 25000000;
-		int *iW = new int[maxWi];
-		double *rW = new double[maxWr];
-		double rQual;
-
-		r = mbaFixShape(&nV, nnV, &nF, nnF, &nT, nnT, 
-			vertexdup, facefront, tetra, facematerial, tetramaterial,
-			0, front->nFaces, 0, 0, ifv, 0,
-			1, 0, 
-			300, 500000, 
-			euclid_metric, 1, &rQual, 
-			maxWr, maxWi, rW, iW, 
-			2);
-
-		delete[] iW;
-		delete[] rW;
-		delete[] ifv;
-
-		for (int i=0; i<nT; i++) {
-			tetra[4*i+0]--;
-			tetra[4*i+1]--;
-			tetra[4*i+2]--;
-			tetra[4*i+3]--;
-		}
-
-		/* just ignored r ... TODO checks */
-	}
-
-	fromAft(nV, front->nFaces, nT, vertexdup, facedup, tetra, facematdup, tetramaterial);
-
-	delete[] vertexdup;
-	delete[] facefront;
-	delete[] facedup;
-	delete[] facematerial;
-	delete[] facematdup;
-	delete[] tetra;
-	delete[] tetramaterial;
 }

@@ -6,10 +6,6 @@
 
 #include "vector.h"
 #include "list.h"
-#include "front.h"
-
-#include "libaft.h"
-#include "libmba.h"
 
 #if defined(_MSC_VER)
  #include <new.h>
@@ -81,28 +77,10 @@ class Mesh {
 	Vertex **vertices;
 	Element **elements;
 	Face **faces;
-	void fromAft(int nV, int nB, int nT, double *vert, int *bnd, int *tet, int *bndmat, int *tetmat);
-	static double meshSize;
-	static double usersize(double, double, double) {
-		return meshSize;
-	}
-	static int euclid_metric(double *, double *, double *, double *metric) {
-		metric[0] = 1.;
-		metric[4] = 1.;
-		metric[8] = 1.;
-		metric[3] = 0.;
-		metric[6] = 0.;
-		metric[7] = 0.;
-		return 1;
-	}
+	void fromVol(int nV, int nB, int nT, double *vert, int *bnd, int *tet, int *bndmat, int *tetmat);
 public:
-	/* Construct from ani format */
-	/* @deprecated */
-	Mesh(int nV, int nF, int nT, double *vert, int *bnd, int *tet, int *bndmat, int *tetmat);
 	Mesh(char *fn);
-	Mesh(const Front *f, double meshsize, bool fixShape, int nnV = 400000, int nnF = 1000000, int nnT = 400000);
 	void saveVtk(char *fn);
-	void saveBmf(char *fn);
 	bool check();
 	double quality();
 	~Mesh();
