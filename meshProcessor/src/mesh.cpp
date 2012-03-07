@@ -23,8 +23,12 @@ void Mesh::fromVol(int nV, int nB, int nT, double *vert, int *bnd, int *tet, int
 	addHead<char *>((char *)tetraplace, &memory);
 	addHead<char *>((char *)faceplace, &memory);
 
-	Node<int> *vert2face, *mem = list_allocate<int>(3*nFaces);
-	vert2face = mem;
+	Node<int> *vert2face, *memv2f = list_allocate<int>(3*nFaces);
+	Node<Element *> *memv2e = list_allocate<Element *>(4*nElems);
+	Node<Face *> *memv2b = list_allocate<Face *>(3*nB);
+	vert2face = memv2f;
+	vert2elem = memv2e;
+	vert2bnd = memv2b;
 
 	vertices = new Vertex *[nVert];
 	elements = new Element*[nElems];
@@ -41,16 +45,19 @@ void Mesh::fromVol(int nV, int nB, int nT, double *vert, int *bnd, int *tet, int
 	for (int i = 0; i < nT; i++) {
 		elements[i] = new (tetraplace + i) Tetrahedron(i, vertices[tet[4*i + 0]], vertices[tet[4*i + 1]], vertices[tet[4*i + 2]], vertices[tet[4*i + 3]], tetmat[i], faceplace+4*i);
 		for (int j = 0; j < 4; j++) {
+			addHead(elements[i], &vertices[tet[4*i+j]]->elems, &memv2e);
 			faces[4*i+j] = faceplace + 4*i+j;
 			for (int k = 0; k < 4; k++)
 				 if (j != k)
-					addHead(4*i + j, &lists[tet[4*i + k]], &mem);
+					addHead(4*i + j, &lists[tet[4*i + k]], &memv2f);
 		}
 	}
 	for (int i = 0; i < nB; i++) {
 		faces[4*nT + i] = new(faceplace + 4*nT + i) TriFace(4*nT + i, vertices[bnd[3*i+0]], vertices[bnd[3*i+1]], vertices[bnd[3*i+2]], 0, bndmat[i]);
-		for (int j = 0; j < 3; j++)
-			addHead(4*nT + i, &lists[bnd[3*i+j]], &mem);
+		for (int j = 0; j < 3; j++) {
+			addHead(faces[4*nT + i], &vertices[bnd[3*i+j]]->bnds, &memv2b);
+			addHead(4*nT + i, &lists[bnd[3*i+j]], &memv2f);
+		}
 	}
 	for (int i = 0; i < nFaces; i++) {
 		TriFace *f = (TriFace *)faces[i];
@@ -278,6 +285,8 @@ Mesh::~Mesh() {
 		cnext = chunk->next;
 		delete[] chunk;
 	}
+	list_deallocate<Element *>(vert2elem);
+	list_deallocate<Face *>(vert2bnd);
 }
 
 double Mesh::quality() {
@@ -349,8 +358,9 @@ bool Mesh::check() {
 		fprintf(stderr, "Element with negative volume\n");
 /*
 	Element faces should be directed inside, so boundary faces could be directed outside
+	Check specific to tetrahedron meshes
 */
-/*
+
 	lastcheck = true;
 	for (int i=0; i<nElems; i++) {
 		Tetrahedron *t = (Tetrahedron *)elements[i];
@@ -363,7 +373,41 @@ bool Mesh::check() {
 	ok &= lastcheck;
 	if (!lastcheck)
 		fprintf(stderr, "Element with face-normal directed outside\n");
-*/
+
+	int cnt1 = 0, cnt2 = 0;
+	lastcheck = true;
+
+	for (int i=0; i<nVert; i++) {
+		Node<Element *> *q = vertices[i]->elems;
+		Node<Face *> *p = vertices[i]->bnds;
+		for (;q; q = q->next) {
+			cnt1++;
+			lastcheck &= (((Tetrahedron *)q->data)->p[0]->index == i) ||
+						(((Tetrahedron *)q->data)->p[1]->index == i) ||
+						(((Tetrahedron *)q->data)->p[2]->index == i) ||
+						(((Tetrahedron *)q->data)->p[3]->index == i);
+		}
+		for (;p; p = p->next) {
+			cnt2++;
+			lastcheck &= (((TriFace *)p->data)->p[0]->index == i) ||
+						(((TriFace *)p->data)->p[1]->index == i) ||
+						(((TriFace *)p->data)->p[2]->index == i);
+		}
+	}
+
+	ok &= lastcheck;
+	if (!lastcheck)
+		fprintf(stderr, "Incidental lists are corrupted\n");
+
+	lastcheck = (cnt1 == 4*nElems);
+	ok &= lastcheck;
+	if (!lastcheck)
+		fprintf(stderr, "Incidental elements list has wrong size\n");
+
+	lastcheck = (cnt2 == 3*(nFaces - 4*nElems));
+	ok &= lastcheck;
+	if (!lastcheck)
+		fprintf(stderr, "Incidental faces list has wrong size\n");
 
 	return ok;
 }

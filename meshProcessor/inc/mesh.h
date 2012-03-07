@@ -22,12 +22,17 @@ enum FaceType /*: int*/ {
 };
 
 struct Element;
+struct Face;
 
 struct Vertex {
 	int index;
 	Vector r;
 	Node<Element *> *elems;
-	Vertex(int _index, double _x, double _y, double _z): r(_x, _y, _z), index(_index) { }
+	Node<Face *> *bnds;
+	Vertex(int _index, double _x, double _y, double _z): r(_x, _y, _z), index(_index) { 
+		elems = 0;
+		bnds = 0;
+	}
 	Vertex(int _index, const Vector &v): r(v), index(_index) { }
 private:
 	Vertex &operator=(const Vertex &p);
@@ -77,11 +82,14 @@ class Mesh {
 	Vertex **vertices;
 	Element **elements;
 	Face **faces;
+	Node<Element *> *vert2elem;
+	Node<Face *> *vert2bnd;
 	void fromVol(int nV, int nB, int nT, double *vert, int *bnd, int *tet, int *bndmat, int *tetmat);
 public:
 	Mesh(char *fn);
 	void saveVtk(char *fn);
 	bool check();
+	bool optimize();
 	double quality();
 	~Mesh();
 };
