@@ -94,54 +94,38 @@ Mesh::Mesh(char *fn) {
 	int i, cnt;
 
 	FILE *f = fopen(fn, "r");
+	if (!f) throw 0;
 	char buf[1024];
-	int nV, nB, nT;
+	int nV, nB, nBx, nT;
 	double *vert = 0;
 	int *bnd = 0, *tet = 0, *bndmat = 0, *tetmat = 0;
 
 	while (fgets(buf, 1024, f)) {
+		/* printf("[%.2d] %s", state, buf); */
 		if (buf[0]=='#')
 			continue;
-		if (!strncmp(buf, "endmesh", 7))
-			if (state != ST_NORM) {
-				fprintf(stderr, "Unexpected endmesh signature\n");
-				break;
-			} else {
+		if (state == ST_NORM) {
+			if (!strncmp(buf, "endmesh", 7)) {
 				state = ST_STOP;
 				break;
 			}
-		if (!strncmp(buf, "surfaceelements", 15))
-			if (state != ST_NORM) {
-				fprintf(stderr, "Unexpected surfaceelements section\n");
-				break;
-			} else {
+			if (!strncmp(buf, "surfaceelements", 15)) {
 				state = ST_SURF_INIT;
 				continue;
 			}
-		if (!strncmp(buf, "points", 6))
-			if (state != ST_NORM) {
-				fprintf(stderr, "Unexpected points section\n");
-				break;
-			} else {
+			if (!strncmp(buf, "points", 6)) {
 				state = ST_PTS_INIT;
 				continue;
 			}
-		if (!strncmp(buf, "volumeelements", 14))
-			if (state != ST_NORM) {
-				fprintf(stderr, "Unexpected volumeelements section\n");
-				break;
-			} else {
+			if (!strncmp(buf, "volumeelements", 14)) {
 				state = ST_VOL_INIT;
 				continue;
 			}
-		if (!strncmp(buf, "edgesegmentsgi2", 15))
-			if (state != ST_NORM) {
-				fprintf(stderr, "Unexpected edgesegmentsgi2 section\n");
-				break;
-			} else {
+			if (!strncmp(buf, "edgesegmentsgi2", 15)) {
 				state = ST_CURVE_INIT;
 				continue;
 			}
+		}
 		if (state == ST_PTS_INIT) {
 			nV = cnt = atoi(buf);
 			vert = new double [3*nV];
@@ -161,6 +145,7 @@ Mesh::Mesh(char *fn) {
 			nB = cnt = atoi(buf);
 			bnd = new int [3*nB];
 			bndmat = new int [nB];
+			nBx = 0;
 			i = 0;
 			state = ST_SURF_DATA;
 			continue;
@@ -173,7 +158,7 @@ Mesh::Mesh(char *fn) {
 			continue;
 		};
 		if (state == ST_PTS_DATA) {
-			sscanf(buf, "%ld %ld %ld", vert + 3*i, vert + 3*i + 1, vert + 3*i + 2);
+			sscanf(buf, "%lf %lf %lf", vert + 3*i, vert + 3*i + 1, vert + 3*i + 2);
 			if (++i == cnt)
 				state = ST_NORM;
 			continue;
@@ -181,7 +166,11 @@ Mesh::Mesh(char *fn) {
 		if (state == ST_VOL_DATA) {
 			int np;
 			sscanf(buf, "%d %d %d %d %d %d", tetmat + i, &np, 
-				tetmat + 4*i, tetmat + 4*i + 1, tetmat + 4*i + 2, tetmat + 4*i + 3);
+				tet + 4*i, tet + 4*i + 1, tet + 4*i + 2, tet + 4*i + 3);
+			tet[4*i]--;
+			tet[4*i+1]--;
+			tet[4*i+2]--;
+			tet[4*i+3]--;
 			if (np != 4) {
 				fprintf(stderr, "high-order tetrahedrons not implemented\n");
 			}
@@ -191,8 +180,13 @@ Mesh::Mesh(char *fn) {
 		}
 		if (state == ST_SURF_DATA) {
 			int sn, domin, domout, np;
-			sscanf(buf, "%d %d %d %d %d %d %d %d", &sn, bndmat + i, &domin, &domout, &np, 
-				bnd + 3*i, bnd + 3*i + 1, bnd + 3*i + 2);
+			sscanf(buf, "%d %d %d %d %d %d %d %d", &sn, bndmat + nBx, &domin, &domout, &np, 
+				bnd + 3*nBx, bnd + 3*nBx + 1, bnd + 3*nBx + 2);
+			bnd[3*nBx]--;
+			bnd[3*nBx+1]--;
+			bnd[3*nBx+2]--;
+			if (domout == 0) 
+				nBx ++;
 			if (np != 3) {
 				fprintf(stderr, "high-order faces not implemented\n");
 			}
@@ -207,9 +201,10 @@ Mesh::Mesh(char *fn) {
 		}
 	}
 	if (state == ST_STOP) {
-		fromVol(nV, nB, nT, vert, bnd, tet, bndmat, tetmat);
+		fromVol(nV, nBx, nT, vert, bnd, tet, bndmat, tetmat);
 	}
 	else {
+		throw 0;
 		/* Set Mesh object to valid state so ~Mesh() could safely destroy it */
 	}
 	if (vert) delete[] vert;
@@ -327,7 +322,7 @@ bool Mesh::check() {
 	}
 	ok &= lastcheck;
 	if (!lastcheck)
-		fprintf(stderr, "Face flip not opposed to face (probably wrong oriented face, weird)\n");
+		fprintf(stderr, "Face flip not opposed to face (probably wrong oriented face)\n");
 
 	lastcheck = true;
 	for (int i=0; i<nFaces; i++) {
@@ -352,17 +347,23 @@ bool Mesh::check() {
 	ok &= lastcheck;
 	if (!lastcheck)
 		fprintf(stderr, "Element with negative volume\n");
-
+/*
+	Element faces should be directed inside, so boundary faces could be directed outside
+*/
+/*
 	lastcheck = true;
-	for (int i=0; i<nFaces; i++) {
-		Vector r(faces[i]->center);
-		r.sub(faces[i]->element->center);
-		lastcheck &= faces[i]->normal.dot(r) > 0;
+	for (int i=0; i<nElems; i++) {
+		Tetrahedron *t = (Tetrahedron *)elements[i];
+		for (int j=0; j<4; j++) {
+			Vector r(t->f[j]->center);
+			r.sub(t->center);
+			lastcheck &= r.dot(t->f[j]->normal) < 0;
+		}
 	}
 	ok &= lastcheck;
 	if (!lastcheck)
-		fprintf(stderr, "Element with normal directed inside\n");
-
+		fprintf(stderr, "Element with face-normal directed outside\n");
+*/
 
 	return ok;
 }
