@@ -26,9 +26,13 @@ void Mesh::fromVol(int nV, int nB, int nT, double *vert, int *bnd, int *tet, int
 	Node<int> *vert2face, *memv2f = list_allocate<int>(3*nFaces);
 	Node<Element *> *memv2e = list_allocate<Element *>(4*nElems);
 	Node<Face *> *memv2b = list_allocate<Face *>(3*nB);
+	Node<int> *memv2ei = list_allocate<int>(4*nElems);
+	Node<int> *memv2bi = list_allocate<int>(3*nB);
 	vert2face = memv2f;
 	vert2elem = memv2e;
 	vert2bnd = memv2b;
+	vert2elidx = memv2ei;
+	vert2bndidx = memv2bi;
 
 	vertices = new Vertex *[nVert];
 	elements = new Element*[nElems];
@@ -46,6 +50,7 @@ void Mesh::fromVol(int nV, int nB, int nT, double *vert, int *bnd, int *tet, int
 		elements[i] = new (tetraplace + i) Tetrahedron(i, vertices[tet[4*i + 0]], vertices[tet[4*i + 1]], vertices[tet[4*i + 2]], vertices[tet[4*i + 3]], tetmat[i], faceplace+4*i);
 		for (int j = 0; j < 4; j++) {
 			addHead(elements[i], &vertices[tet[4*i+j]]->elems, &memv2e);
+			addHead(j, &vertices[tet[4*i+j]]->elidx, &memv2ei);
 			faces[4*i+j] = faceplace + 4*i+j;
 			for (int k = 0; k < 4; k++)
 				 if (j != k)
@@ -56,6 +61,7 @@ void Mesh::fromVol(int nV, int nB, int nT, double *vert, int *bnd, int *tet, int
 		faces[4*nT + i] = new(faceplace + 4*nT + i) TriFace(4*nT + i, vertices[bnd[3*i+0]], vertices[bnd[3*i+1]], vertices[bnd[3*i+2]], 0, bndmat[i]);
 		for (int j = 0; j < 3; j++) {
 			addHead(faces[4*nT + i], &vertices[bnd[3*i+j]]->bnds, &memv2b);
+			addHead(j, &vertices[bnd[3*i+j]]->bndidx, &memv2bi);
 			addHead(4*nT + i, &lists[bnd[3*i+j]], &memv2f);
 		}
 	}
@@ -287,6 +293,8 @@ Mesh::~Mesh() {
 	}
 	list_deallocate<Element *>(vert2elem);
 	list_deallocate<Face *>(vert2bnd);
+	list_deallocate<int>(vert2elidx);
+	list_deallocate<int>(vert2bndidx);
 }
 
 double Mesh::quality() {
@@ -379,19 +387,20 @@ bool Mesh::check() {
 
 	for (int i=0; i<nVert; i++) {
 		Node<Element *> *q = vertices[i]->elems;
+		Node<int> *qi = vertices[i]->elidx;
 		Node<Face *> *p = vertices[i]->bnds;
-		for (;q; q = q->next) {
+		Node<int> *pi = vertices[i]->bndidx;
+		for (;q;) {
 			cnt1++;
-			lastcheck &= (((Tetrahedron *)q->data)->p[0]->index == i) ||
-						(((Tetrahedron *)q->data)->p[1]->index == i) ||
-						(((Tetrahedron *)q->data)->p[2]->index == i) ||
-						(((Tetrahedron *)q->data)->p[3]->index == i);
+			lastcheck &= ((Tetrahedron *)q->data)->p[qi->data]->index == i;
+			q = q->next;
+			qi = qi->next;
 		}
-		for (;p; p = p->next) {
+		for (;p;) {
 			cnt2++;
-			lastcheck &= (((TriFace *)p->data)->p[0]->index == i) ||
-						(((TriFace *)p->data)->p[1]->index == i) ||
-						(((TriFace *)p->data)->p[2]->index == i);
+			lastcheck &= ((TriFace *)p->data)->p[pi->data]->index == i;
+			p = p->next;
+			pi = pi->next;
 		}
 	}
 

@@ -28,10 +28,14 @@ struct Vertex {
 	int index;
 	Vector r;
 	Node<Element *> *elems;
+	Node<int> *elidx;
 	Node<Face *> *bnds;
+	Node<int> *bndidx;
 	Vertex(int _index, double _x, double _y, double _z): r(_x, _y, _z), index(_index) { 
 		elems = 0;
+		elidx = 0;
 		bnds = 0;
+		bndidx = 0;
 	}
 	Vertex(int _index, const Vector &v): r(v), index(_index) { }
 private:
@@ -84,6 +88,8 @@ class Mesh {
 	Face **faces;
 	Node<Element *> *vert2elem;
 	Node<Face *> *vert2bnd;
+	Node<int> *vert2elidx;
+	Node<int> *vert2bndidx;
 	void fromVol(int nV, int nB, int nT, double *vert, int *bnd, int *tet, int *bndmat, int *tetmat);
 public:
 	Mesh(char *fn);
