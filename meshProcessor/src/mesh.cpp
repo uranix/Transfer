@@ -143,7 +143,7 @@ Mesh::Mesh(char *fn) {
 			nV = cnt = atoi(buf);
 			vert = new double [3*nV];
 			i = 0;
-			state = ST_PTS_DATA;
+			state = cnt?ST_PTS_DATA:ST_NORM;
 			continue;
 		}
 		if (state == ST_VOL_INIT) {
@@ -151,7 +151,7 @@ Mesh::Mesh(char *fn) {
 			tet = new int [4*nT];
 			tetmat = new int [nT];
 			i = 0;
-			state = ST_VOL_DATA;
+			state = cnt?ST_VOL_DATA:ST_NORM;
 			continue;
 		}
 		if (state == ST_SURF_INIT) {
@@ -160,13 +160,13 @@ Mesh::Mesh(char *fn) {
 			bndmat = new int [nB];
 			nBx = 0;
 			i = 0;
-			state = ST_SURF_DATA;
+			state = cnt?ST_SURF_DATA:ST_NORM;
 			continue;
 		}
 		if (state == ST_CURVE_INIT) {
 			cnt = atoi(buf);
-			state = ST_CURVE_DATA;
 			i = 0;
+			state = cnt?ST_CURVE_DATA:ST_NORM;
 			/* Just ignore it */
 			continue;
 		};
