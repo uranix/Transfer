@@ -11,10 +11,10 @@ void deviceFree(void *mem) {
 	cudaFree(mem);
 }
 
-void computeRhs(const DeviceMeshDataRaw meshdata, const DeviceAngularDataRaw angdata, REAL *f, REAL *r) {
-	dim3 grid(meshdata.nPlow, meshdata.nPhigh);
-	dim3 block(angdata.aslm);
-	volumePart<<<grid, block>>>(meshdata, angdata, f, r);
-	surfacePart<<<grid, block>>>(meshdata, angdata, f, r);
+void computeRhs(const DeviceMeshData *meshdata, const DeviceAngularData *angdata, REAL *f, REAL *r) {
+	dim3 grid(meshdata->nPlow, meshdata->nPhigh);
+	dim3 block(angdata->aslm);
+	volumePart<<<grid, block>>>(*reinterpret_cast<const DeviceMeshDataRaw *>(meshdata), *reinterpret_cast<const DeviceAngularDataRaw *>(angdata), f, r);
+	surfacePart<<<grid, block>>>(*reinterpret_cast<const DeviceMeshDataRaw *>(meshdata), *reinterpret_cast<const DeviceAngularDataRaw *>(angdata), f, r);
 }
 
