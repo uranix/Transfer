@@ -15,7 +15,7 @@ struct AngularData {
 	~AngularData();
 };
 
-struct DeviceAngularData {
+struct DeviceAngularDataRaw {
 	idx slm;
 	idx aslm;
 
@@ -23,6 +23,9 @@ struct DeviceAngularData {
 	idx *omega_pos;
 
 	REAL *Ox, *Oy, *Oz;
+};
+
+struct DeviceAngularData : public DeviceAngularDataRaw {
 	DeviceAngularData(const AngularData &);
 	~DeviceAngularData();
 private:

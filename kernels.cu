@@ -39,10 +39,11 @@ Assumed:
 
 #define ASLM_MAX (256)
 
-__global__ void volumePart(	DeviceMeshData md,
-							DeviceAngularData ad,
+__global__ void volumePart(	DeviceMeshDataRaw md,
+							DeviceAngularDataRaw ad,
 							REAL *f,
-							REAL *r) {
+							REAL *r) 
+{
 	__shared__ tetrahedron tetas;
 	__shared__ REAL sums_j[4*ASLM_MAX]; /* 3 -> 4 for align*/
 
@@ -139,8 +140,8 @@ Assumed:
 
 	shmem per block = 32*ASLM_MAX * blockDim.x + ? [__syncthreads()]
    */
-__global__ void surfacePart( DeviceMeshData md,
-							 DeviceAngularData ad,
+__global__ void surfacePart( DeviceMeshDataRaw md,
+							 DeviceAngularDataRaw ad,
 							 REAL *f, 
 							 REAL *r) 
 {

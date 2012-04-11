@@ -21,7 +21,7 @@ struct MeshData {
 	~MeshData();
 };
 
-struct DeviceMeshData {
+struct DeviceMeshDataRaw {
 	idx nPlow, nPhigh; // nP < nPlow * nPhigh
 
 	idx *tetstart;
@@ -33,6 +33,9 @@ struct DeviceMeshData {
 	idx *faceidx;
 	idx *facepos;
 	face *bnd;
+};
+
+struct DeviceMeshData : public DeviceMeshDataRaw { 
 	DeviceMeshData(const MeshData &);
 	~DeviceMeshData();
 private:
