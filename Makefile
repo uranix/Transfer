@@ -19,19 +19,23 @@ OBJS=main.o wrapper.o DeviceAngularData.o DeviceMeshData.o LebedevQuad.o \
 	 HemiQuad.o Spherical.o AngularData.o MeshData.o
 TARGET=main
 
-.PHONY: all clean
+.PHONY: all clean deepclean
 
 all: main
 
 %.o : %.cu
 	$(NVCC) $(NVCCFLAGS) -Xptxas "$(PTXFLAGS)" -c $<
 
-main: $(OBJS)
+meshProcessor/libmesh3d.a:
 	$(MAKE) -C meshProcessor all
+
+main: meshProcessor/libmesh3d.a $(OBJS)
 	gcc $(LDFLAGS) -o $@ $^ $(LIBS)
 
 clean: 
-	$(MAKE) -C meshProcessor clean
 	rm -f cufiles/*
 	rm -f $(TARGET) $(OBJS)
-	
+
+deepclean: clean
+	$(MAKE) -C meshProcessor clean
+
