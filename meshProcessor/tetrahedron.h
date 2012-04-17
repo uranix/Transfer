@@ -60,8 +60,9 @@ struct Tetrahedron : public Element{
 		quality = getquality();
 	}
 	double getquality() {
+		/* V/S^(3/2) related to equiliteral */
 		double bsurf = f[0]->surface+f[1]->surface+f[2]->surface+f[3]->surface;
-		return pow((volume*volume/(bsurf * bsurf * bsurf))/(2./144.0/3.0/1.7320508075688772935), 1.0/2);
+		return sqrt((volume*volume/(bsurf * bsurf * bsurf))/(2./144.0/3.0/1.7320508075688772935));
 	}
 	virtual ~Tetrahedron() {
 	}

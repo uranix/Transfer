@@ -7,9 +7,7 @@
 #include "vector.h"
 #include "list.h"
 
-#if defined(_MSC_VER)
- #include <new.h>
-#endif
+#include <new>
 
 enum ElementType /*: int*/ {
 	EL_TETRAHEDRON = 1,
@@ -93,9 +91,8 @@ class Mesh {
 	void fromVol(int nV, int nB, int nT, double *vert, int *bnd, int *tet, int *bndmat, int *tetmat);
 public:
 	Mesh(char *fn);
-	void saveVtk(char *fn);
+	void saveVtk(char *fn, int nExtraCellData = 0, int nExtraPointData = 0, ...);
 	bool check();
-	bool optimize();
 	double quality();
 	~Mesh();
 };

@@ -4,8 +4,9 @@
 #include "tetrahedron.h"
 #include "list.h"
 
-#include "stdint.h"
+#include <stdint.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 
 void Mesh::fromVol(int nV, int nB, int nT, double *vert, int *bnd, int *tet, int *bndmat, int *tetmat) {
@@ -227,8 +228,10 @@ Mesh::Mesh(char *fn) {
 	if (tetmat) delete[] tetmat;
 }
 
-void Mesh::saveVtk(char *fn) {
+void Mesh::saveVtk(char *fn, int nExtraCellData, int nExtraPointData, ...) {
 	FILE *f;
+	va_list args;
+	va_start(args, nExtraPointData);
 
 	f=fopen(fn, "w");
 	fprintf(f, "# vtk DataFile Version 2.0\n");
@@ -247,28 +250,39 @@ void Mesh::saveVtk(char *fn) {
 		fprintf(f, "10 %s", (i&15)==15?"\n":"");
 
 	fprintf(f, "\nCELL_DATA %9d\n", nElems);
-	fprintf(f, "\nFIELD MerticData 5\n");
-	fprintf(f, "\nVolume 1 %9d double\n", nElems);
+	fprintf(f, "\nFIELD MeshProcessorData 5\n");
+	fprintf(f, "\n__mp_Volume 1 %9d double\n", nElems);
 	for (int i=0; i<nElems; i++)
 		fprintf(f, "%2.10e %s", elements[i]->volume, (i&3)==3?"\n":"");
-	fprintf(f, "\nQuality 1 %9d double\n", nElems);
+	fprintf(f, "\n__mp_Quality 1 %9d double\n", nElems);
 	for (int i=0; i<nElems; i++)
 		fprintf(f, "%2.10e %s", elements[i]->quality, (i&3)==3?"\n":"");
-	fprintf(f, "\nCenterX 1 %9d double\n", nElems);
+	fprintf(f, "\n__mp_CenterX 1 %9d double\n", nElems);
 	for (int i=0; i<nElems; i++)
 		fprintf(f, "%2.10e\n", elements[i]->center.x);
-	fprintf(f, "\nCenterY 1 %9d double\n", nElems);
+	fprintf(f, "\n__mp_CenterY 1 %9d double\n", nElems);
 	for (int i=0; i<nElems; i++)
 		fprintf(f, "%2.10e\n", elements[i]->center.y);
-	fprintf(f, "\nCenterZ 1 %9d double\n", nElems);
+	fprintf(f, "\n__mp_CenterZ 1 %9d double\n", nElems);
 	for (int i=0; i<nElems; i++)
 		fprintf(f, "%2.10e\n", elements[i]->center.z);
 
+	fprintf(f, "\nFIELD ExtraCellData %d\n", nExtraCellData);
+	for (int nextra = 0; nextra < nExtraCellData; nextra++) {
+		double *p = va_arg(args, double *);
+		fprintf(f, "\nextra_data%.4d 1 %9d double\n", nextra, nElems);
+		for (int i=0; i<nElems; i++)
+			fprintf(f, " %2.16e\n", p[i]);
+	}
+
 	fprintf(f, "\nPOINT_DATA %9d\n", nVert);
-	fprintf(f, "\nFIELD MerticData 1\n");
-	fprintf(f, "\u 1 %9d double\n", nVert);
-	for (int i=0; i<nVert; i++)
-		fprintf(f, "%2.10e\n", vertices[i]->r.norm());
+	fprintf(f, "\nFIELD ExtraCellData %d\n", nExtraCellData);
+	for (int nextra = 0; nextra < nExtraCellData; nextra++) {
+		double *p = va_arg(args, double *);
+		fprintf(f, "\nextra_data%.4d 1 %9d double\n", nextra, nVert);
+		for (int i=0; i<nVert; i++)
+			fprintf(f, " %2.16e\n", p[i]);
+	}
 	fclose(f);
 }
 
@@ -372,10 +386,16 @@ bool Mesh::check() {
 	lastcheck = true;
 	for (int i=0; i<nElems; i++) {
 		Tetrahedron *t = (Tetrahedron *)elements[i];
-		for (int j=0; j<4; j++) {
+	/*	for (int j=0; j<4; j++) {
 			Vector r(t->f[j]->center);
 			r.sub(t->center);
 			lastcheck &= r.dot(t->f[j]->normal) < 0;
+		}*/
+		for (int j=0; j<4; j++) {
+			int k = (j+1) & 3;
+			Vector r(t->p[j]->r);
+			r.sub(t->p[k]->r);
+			lastcheck &= ( abs(r.dot(t->f[j]->normal) - t->volume) <= 1e-12 * abs(t->volume) );
 		}
 	}
 	ok &= lastcheck;
