@@ -320,7 +320,7 @@ Mesh::~Mesh() {
 	for (Node<char *> *chunk = memory; chunk; chunk = cnext) {
 		delete[] chunk->data;
 		cnext = chunk->next;
-		delete[] chunk;
+		delete chunk;
 	}
 	list_deallocate<Element *>(vert2elem);
 	list_deallocate<Face *>(vert2bnd);
