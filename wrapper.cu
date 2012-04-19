@@ -21,7 +21,7 @@ void copyToHost(void *dst, void *src, size_t sz) {
 
 void computeRhs(const DeviceMeshData *meshdata, const DeviceAngularData *angdata, REAL *f, REAL *Af, REAL *b) {
 	dim3 grid(meshdata->nPlow, meshdata->nPhigh);
-	dim3 block(angdata->aslm);
+	dim3 block(angdata->slm); /* no need of extra threads in block */
 	volumePart<<<grid, block>>>(*reinterpret_cast<const DeviceMeshDataRaw *>(meshdata), *reinterpret_cast<const DeviceAngularDataRaw *>(angdata), f, Af);
 	surfacePart<<<grid, block>>>(*reinterpret_cast<const DeviceMeshDataRaw *>(meshdata), *reinterpret_cast<const DeviceAngularDataRaw *>(angdata), f, Af);
 	rightHandSide<<<grid, block>>>(*reinterpret_cast<const DeviceMeshDataRaw *>(meshdata), *reinterpret_cast<const DeviceAngularDataRaw *>(angdata), b);
