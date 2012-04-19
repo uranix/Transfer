@@ -5,6 +5,8 @@
 #include "tetrahedron.h"
 #include "face.h"
 
+class Mesh;
+
 struct MeshData {
 	idx nP;
 
@@ -19,6 +21,9 @@ struct MeshData {
 	face *bnd;
 	MeshData(const char *fn);
 	~MeshData();
+
+private:
+	Mesh *_m;
 };
 
 struct DeviceMeshDataRaw {

@@ -1,5 +1,5 @@
-#ifndef __TRI_FACE_H__
-#define __TRI_FACE_H__
+#ifndef __MESH3D__TRI_FACE_H__
+#define __MESH3D__TRI_FACE_H__
 
 #include "vector.h"
 #include "mesh.h"

@@ -1,5 +1,5 @@
-#ifndef __LIST_H__
-#define __LIST_H__
+#ifndef __MESH3D__LIST_H__
+#define __MESH3D__LIST_H__
 
 template<class T>
 struct Node {

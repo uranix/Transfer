@@ -1,5 +1,5 @@
-#ifndef __TETRAHEDRON_H__
-#define __TETRAHEDRON_H__
+#ifndef __MESH3D__TETRAHEDRON_H__
+#define __MESH3D__TETRAHEDRON_H__
 
 #include "vector.h"
 #include "mesh.h"

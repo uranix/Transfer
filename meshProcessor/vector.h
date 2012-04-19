@@ -1,5 +1,5 @@
-#ifndef __VECTOR_H__
-#define __VECTOR_H__
+#ifndef __MESH3D__VECTOR_H__
+#define __MESH3D__VECTOR_H__
 
 #include <stdio.h>
 

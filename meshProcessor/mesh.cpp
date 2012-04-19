@@ -48,10 +48,16 @@ void Mesh::fromVol(int nV, int nB, int nT, double *vert, int *bnd, int *tet, int
 	for (int i = 0; i < nV; i++)
 		lists[i] = 0;
 	for (int i = 0; i < nT; i++) {
-		elements[i] = new (tetraplace + i) Tetrahedron(i, vertices[tet[4*i + 0]], vertices[tet[4*i + 1]], vertices[tet[4*i + 2]], vertices[tet[4*i + 3]], tetmat[i], faceplace+4*i);
+		elements[i] = new (tetraplace + i) Tetrahedron(i, 
+				vertices[tet[4*i + 0]], 
+				vertices[tet[4*i + 1]], 
+				vertices[tet[4*i + 2]], 
+				vertices[tet[4*i + 3]], 
+				tetmat[i], faceplace+4*i);
 		for (int j = 0; j < 4; j++) {
 			addHead(elements[i], &vertices[tet[4*i+j]]->elems, &memv2e);
 			addHead(j, &vertices[tet[4*i+j]]->elidx, &memv2ei);
+			vertices[tet[4*i+j]]->elnum++;
 			faces[4*i+j] = faceplace + 4*i+j;
 			for (int k = 0; k < 4; k++)
 				 if (j != k)
@@ -59,13 +65,19 @@ void Mesh::fromVol(int nV, int nB, int nT, double *vert, int *bnd, int *tet, int
 		}
 	}
 	for (int i = 0; i < nB; i++) {
-		faces[4*nT + i] = new(faceplace + 4*nT + i) TriFace(4*nT + i, vertices[bnd[3*i+0]], vertices[bnd[3*i+1]], vertices[bnd[3*i+2]], 0, bndmat[i]);
+		faces[4*nT + i] = new(faceplace + 4*nT + i) TriFace(4*nT + i, 
+				vertices[bnd[3*i+0]], 
+				vertices[bnd[3*i+1]], 
+				vertices[bnd[3*i+2]], 
+				0, bndmat[i]);
 		for (int j = 0; j < 3; j++) {
 			addHead(faces[4*nT + i], &vertices[bnd[3*i+j]]->bnds, &memv2b);
 			addHead(j, &vertices[bnd[3*i+j]]->bndidx, &memv2bi);
+			vertices[bnd[3*i+j]]->bndnum++;
 			addHead(4*nT + i, &lists[bnd[3*i+j]], &memv2f);
 		}
 	}
+	int bnd_idx = 0;
 	for (int i = 0; i < nFaces; i++) {
 		TriFace *f = (TriFace *)faces[i];
 		Vertex *p1 = f->p[0], *p2 = f->p[1], *p3 = f->p[2];
@@ -87,12 +99,17 @@ out:
 		if (found == -1)
 			throw "Flipped face not found";
 		f->setFlip(faces[found]);
+		if (!f->element) 
+			f->bnd_index = bnd_idx++;
+		else
+			f->bnd_index = -1;
 	}
+	nBndFaces = bnd_idx;
 	delete[] lists;
 	list_deallocate(vert2face);
 }
 
-Mesh::Mesh(char *fn) {
+Mesh::Mesh(const char *fn) {
 	enum State {
 		ST_NORM,
 		ST_SURF_INIT,
@@ -105,12 +122,12 @@ Mesh::Mesh(char *fn) {
 		ST_CURVE_DATA,
 		ST_STOP,
 	} state = ST_NORM;
-	int i, cnt;
+	int i = 0, cnt = 0;
 
 	FILE *f = fopen(fn, "r");
 	if (!f) throw 0;
 	char buf[1024];
-	int nV, nB, nBx, nT;
+	int nV = 0, nB = 0, nBx = 0, nT = 0;
 	double *vert = 0;
 	int *bnd = 0, *tet = 0, *bndmat = 0, *tetmat = 0;
 
@@ -395,6 +412,7 @@ bool Mesh::check() {
 			int k = (j+1) & 3;
 			Vector r(t->p[j]->r);
 			r.sub(t->p[k]->r);
+			r.scale(t->f[j]->surface/3);
 			lastcheck &= ( abs(r.dot(t->f[j]->normal) - t->volume) <= 1e-12 * abs(t->volume) );
 		}
 	}

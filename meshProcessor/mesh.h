@@ -1,5 +1,5 @@
-#ifndef __MESH_H__
-#define __MESH_H__
+#ifndef __MESH3D__MESH_H__
+#define __MESH3D__MESH_H__
 
 #include <math.h>
 #include <stdio.h>
@@ -27,15 +27,19 @@ struct Vertex {
 	Vector r;
 	Node<Element *> *elems;
 	Node<int> *elidx;
+	int elnum;
 	Node<Face *> *bnds;
 	Node<int> *bndidx;
-	Vertex(int _index, double _x, double _y, double _z): r(_x, _y, _z), index(_index) { 
+	int bndnum;
+	Vertex(int _index, double _x, double _y, double _z): index(_index), r(_x, _y, _z) { 
 		elems = 0;
 		elidx = 0;
 		bnds = 0;
 		bndidx = 0;
+		elnum = 0;
+		bndnum = 0;
 	}
-	Vertex(int _index, const Vector &v): r(v), index(_index) { }
+	Vertex(int _index, const Vector &v): index(_index), r(v) { }
 private:
 	Vertex &operator=(const Vertex &p);
 	Vertex(const Vertex &p);
@@ -59,6 +63,7 @@ private:
 
 struct Face {
 	int index;
+	int bnd_index;
 	Element *element;
 	Face *flip;
 
@@ -79,18 +84,19 @@ private:
 };
 
 class Mesh {
-	int nVert, nFaces, nElems;
 	Node<char *> *memory;
-	Vertex **vertices;
-	Element **elements;
-	Face **faces;
 	Node<Element *> *vert2elem;
 	Node<Face *> *vert2bnd;
 	Node<int> *vert2elidx;
 	Node<int> *vert2bndidx;
 	void fromVol(int nV, int nB, int nT, double *vert, int *bnd, int *tet, int *bndmat, int *tetmat);
 public:
-	Mesh(char *fn);
+	int nVert, nFaces, nElems, nBndFaces;
+	Vertex **vertices;
+	Element **elements;
+	Face **faces;
+
+	Mesh(const char *fn);
 	void saveVtk(char *fn, int nExtraCellData = 0, int nExtraPointData = 0, ...);
 	bool check();
 	double quality();

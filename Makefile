@@ -13,24 +13,28 @@ CXXFLAGS=$(CFLAGS)
 
 LDFLAGS=-m32
 PTXFLAGS= -v -O2
-LIBS= -L/usr/local/cuda/lib/ -LmeshProcessor -lcudart -lmesh3d
+LIBS= -L/usr/local/cuda/lib/ -LmeshProcessor -lmesh3d
 
-OBJS=main.o wrapper.o DeviceAngularData.o DeviceMeshData.o LebedevQuad.o \
-	 HemiQuad.o Spherical.o AngularData.o MeshData.o
+#OBJS=main.o wrapper.o DeviceAngularData.o DeviceMeshData.o LebedevQuad.o \
+#	 HemiQuad.o Spherical.o AngularData.o MeshData.o
+
+OBJS=main.o LebedevQuad.o HemiQuad.o Spherical.o AngularData.o MeshData.o
+
 TARGET=main
 
 .PHONY: all clean deepclean
+
 
 all: main
 
 %.o : %.cu
 	$(NVCC) $(NVCCFLAGS) -Xptxas "$(PTXFLAGS)" -c $<
 
-meshProcessor/libmesh3d.a:
+meshProcessor/libmesh3d.a: meshProcessor/*.h meshProcessor/*.h
 	$(MAKE) -C meshProcessor all
 
 main: meshProcessor/libmesh3d.a $(OBJS)
-	gcc $(LDFLAGS) -o $@ $^ $(LIBS)
+	g++ $(LDFLAGS) -o $@ $^ $(LIBS)
 
 clean: 
 	rm -f cufiles/*
