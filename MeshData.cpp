@@ -63,7 +63,7 @@ MeshData::MeshData(const char *fn) {
 		for (int j=0; j<4; j++)
 			mesh[i].p[j] = t->p[j]->index;
 		mesh[i].kappa_volume = t->volume * (t->region == 1? 10.: 1.);
-		mesh[i].I_p = t->region == 1? 10.: 1.;
+		mesh[i].I_p = t->region == 1? 10.: 0.;
 		for (int j=0; j<4; j++) {
 			Vector s(t->f[j]->normal);
 			s.scale( - t->f[j]->surface); /* note the minus */
@@ -80,7 +80,7 @@ MeshData::MeshData(const char *fn) {
 		for (int k=0; k<3; k++)
 			bnd[j].p[k] = f->p[k]->index;
 		Vector s(f->normal);
-		s.scale( - f->surface); /* note the minus */
+		s.scale(f->surface); /* note the minus */
 		bnd[j].s[0] = s.x;
 		bnd[j].s[1] = s.y;
 		bnd[j].s[2] = s.z;

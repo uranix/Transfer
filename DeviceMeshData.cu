@@ -1,19 +1,10 @@
 #include <MeshData.h>
 
-__global__ void copy_start(idx *dst, idx *src, idx nP) {
-	idx i = blockIdx.x + blockIdx.y * gridDim.x;
-	
-	dst[i] = src[i>nP ? nP : i];
-}
-
 DeviceMeshData::DeviceMeshData(const MeshData &host) {
 	int nps = (int)(sqrt(host.nP)+0.5000001);
 	nPlow = align_power(nps, 16);
 	nPhigh = align_power(nps, 16);
-	int nP = nPlow * nPhigh;
-
-	idx *tmp;
-	cudaMalloc((void **)&tmp, (host.nP+1)*sizeof(idx));
+	nP = host.nP;
 
 	cudaMalloc((void **)&tetstart, (nP+1)*sizeof(idx));
 	cudaMalloc((void **)&tetidx, host.tetstart[host.nP]*sizeof(idx));
@@ -28,11 +19,9 @@ DeviceMeshData::DeviceMeshData(const MeshData &host) {
 	dim3 grid(nPlow, nPhigh);
 	dim3 block(1);
 	
-	cudaMemcpy(tmp, host.tetstart, (host.nP+1)*sizeof(idx), cudaMemcpyHostToDevice);
-	copy_start<<<grid,block>>>(tetstart, tmp, host.nP);
+	cudaMemcpy(tetstart, host.tetstart, (host.nP+1)*sizeof(idx), cudaMemcpyHostToDevice);
 
-	cudaMemcpy(tmp, host.facestart, (host.nP+1)*sizeof(idx), cudaMemcpyHostToDevice);
-	copy_start<<<grid,block>>>(facestart, tmp, host.nP);
+	cudaMemcpy(facestart, host.facestart, (host.nP+1)*sizeof(idx), cudaMemcpyHostToDevice);
 
 	cudaMemcpy(tetidx, host.tetidx, host.tetstart[host.nP]*sizeof(idx), cudaMemcpyHostToDevice);
 	cudaMemcpy(tetpos, host.tetpos, host.tetstart[host.nP]*sizeof(idx), cudaMemcpyHostToDevice);
@@ -41,8 +30,6 @@ DeviceMeshData::DeviceMeshData(const MeshData &host) {
 	cudaMemcpy(faceidx, host.faceidx, host.facestart[host.nP]*sizeof(idx), cudaMemcpyHostToDevice);
 	cudaMemcpy(facepos, host.facepos, host.facestart[host.nP]*sizeof(idx), cudaMemcpyHostToDevice);
 	cudaMemcpy(bnd, host.bnd, host.nF*sizeof(face), cudaMemcpyHostToDevice);
-
-	cudaFree(tmp);
 }
 
 DeviceMeshData::~DeviceMeshData() {

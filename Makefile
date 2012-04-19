@@ -1,6 +1,6 @@
 CUDA_INSTALL_PATH=/usr/local/cuda
 NVCC=$(CUDA_INSTALL_PATH)/bin/nvcc
-NVCCFLAGS= -I. -O2 \
+NVCCFLAGS= -I. -O0 -g \
 		   -m32 \
 		   -arch sm_13 \
 		   --keep --keep-dir cufiles
@@ -27,6 +27,8 @@ all: main
 
 %.o : %.cu
 	$(NVCC) $(NVCCFLAGS) -Xptxas "$(PTXFLAGS)" -c $<
+
+wrapper.o:: kernels.cu
 
 meshProcessor/libmesh3d.a: meshProcessor/*.h meshProcessor/*.h
 	$(MAKE) -C meshProcessor all

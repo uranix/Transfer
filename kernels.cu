@@ -37,6 +37,9 @@ __global__ void rightHandSide(	DeviceMeshDataRaw md,
 	idx lo, hi;
 
 	REAL sum = 0;
+	if (vertex >= md.nP)
+		return;
+
 	lo = start[vertex];
 	hi = start[vertex+1];
 	for (int j = lo; j < hi; j++) {
@@ -46,8 +49,7 @@ __global__ void rightHandSide(	DeviceMeshDataRaw md,
 		if (lm == 0)
 			sum += tet->kappa_volume * tet->I_p * (1. / 4.);
 	}
-	if (vertex < md.nP)
-		r[aslm*vertex + lm] = sum;
+	r[aslm*vertex + lm] = sum;
 }
 
 /*
@@ -112,6 +114,8 @@ __global__ void volumePart(	DeviceMeshDataRaw md,
 	REAL fsum;
 
 	REAL sum = 0;
+	if (vertex >= md.nP)
+		return;
 	lo = start[vertex];
 	hi = start[vertex+1];
 	for (int j = lo; j < hi; j++) {
@@ -167,8 +171,7 @@ __global__ void volumePart(	DeviceMeshDataRaw md,
 			rowsum += omega[v] * sums_j[omega_pos[v]*aslm + lms]; /* TODO: resolve bank conflict (x16) */
 		sum += rowsum * sum_i[2];
 	}
-	if (vertex < md.nP)
-		r[aslm*vertex + lm] = sum;
+	r[aslm*vertex + lm] = sum;
 }
 
 /*
@@ -221,6 +224,9 @@ __global__ void surfacePart( DeviceMeshDataRaw md,
 	idx lo, hi;
 
 	REAL sum = 0;
+	if (vertex >= md.nP)
+		return;
+
 	lo = start[vertex];
 	hi = start[vertex+1];
 	for (int j = lo; j < hi; j++) {
@@ -246,6 +252,5 @@ __global__ void surfacePart( DeviceMeshDataRaw md,
 		for (int lms = 0; lms < slm; lms ++)
 			sum += surf * On[aslm * lms + lm] * (fv[local*aslm + slm] + fv[3*aslm + slm]) * (1. / 12.);
 	}
-	if (vertex < md.nP)
-		r[aslm*vertex + lm] += sum;
+	r[aslm*vertex + lm] += sum;
 }

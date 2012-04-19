@@ -14,21 +14,21 @@ int main() {
 	DeviceAngularData dad(ad);
 	DeviceMeshData dmd(md);
 
-	REAL *f = deviceAlloc(dmd.aslm * dad.nP * sizeof(REAL));
-	REAL *Af = deviceAlloc(dmd.aslm * dad.nP * sizeof(REAL));
-	REAL *b = deviceAlloc(dmd.aslm * dad.nP * sizeof(REAL));
+	REAL *f = (REAL *)deviceAlloc(dad.aslm * dmd.nP * sizeof(REAL));
+	REAL *Af = (REAL *)deviceAlloc(dad.aslm * dmd.nP * sizeof(REAL));
+	REAL *b = (REAL *)deviceAlloc(dad.aslm * dmd.nP * sizeof(REAL));
 
-	REAL *_f = new REAL[dmd.aslm * dad.nP];
-	REAL *_Af = new REAL[dmd.aslm * dad.nP];
-	REAL *_b = new REAL[dmd.aslm * dad.nP];
+	REAL *_f = new REAL[dad.aslm * dmd.nP];
+	REAL *_Af = new REAL[dad.aslm * dmd.nP];
+	REAL *_b = new REAL[dad.aslm * dmd.nP];
 
-	for (int i = 0; i < dmd.aslm * dad.nP; i++)
+	for (int i = 0; i < dad.aslm * dmd.nP; i++)
 		_f[i] = 1;
 
-	copyToDev(f, _f, dmd.aslm * dad.nP * sizeof(REAL));
-	computeRhs(dmd, dad, f, Af, b);
-	copyFromDev(_b, b, dmd.aslm * dad.nP * sizeof(REAL));
-	copyFromDev(_Af, Af, dmd.aslm * dad.nP * sizeof(REAL));
+	copyToDev(f, _f, dad.aslm * dmd.nP * sizeof(REAL));
+	computeRhs(&dmd, &dad, f, Af, b);
+	copyToHost(_b, b, dad.aslm * dmd.nP * sizeof(REAL));
+	copyToHost(_Af, Af, dad.aslm * dmd.nP * sizeof(REAL));
 
 	return 0;
 }
