@@ -1,7 +1,7 @@
 SRC=mesh.cpp
 OBJ=$(SRC:.cpp=.o)
 TARGET=libmesh3d.a
-CXXFLAGS= -O2 -Wall
+CXXFLAGS= -m32 -O2 -Wall
 
 .PHONY: all clean
 

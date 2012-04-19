@@ -8,7 +8,7 @@
 class Mesh;
 
 struct MeshData {
-	idx nP;
+	idx nP, nF, nT;
 
 	idx *tetstart;
 	idx *tetidx;

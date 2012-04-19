@@ -13,12 +13,10 @@ CXXFLAGS=$(CFLAGS)
 
 LDFLAGS=-m32
 PTXFLAGS= -v -O2
-LIBS= -L/usr/local/cuda/lib/ -LmeshProcessor -lmesh3d
+LIBS= -L/usr/local/cuda/lib/ -LmeshProcessor -lmesh3d -lcudart
 
-#OBJS=main.o wrapper.o DeviceAngularData.o DeviceMeshData.o LebedevQuad.o \
-#	 HemiQuad.o Spherical.o AngularData.o MeshData.o
-
-OBJS=main.o LebedevQuad.o HemiQuad.o Spherical.o AngularData.o MeshData.o
+OBJS=main.o wrapper.o DeviceAngularData.o DeviceMeshData.o LebedevQuad.o \
+	 HemiQuad.o Spherical.o AngularData.o MeshData.o
 
 TARGET=main
 

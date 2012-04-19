@@ -24,12 +24,12 @@ MeshData::MeshData(const char *fn) {
 		tetstart[i+1] = tetstart[i] + nt;
 		facestart[i+1] = facestart[i] + nb;
 	}
-	st = tetstart[nP];
-	sb = facestart[nP];
-	tetidx = new idx[st];
-	tetpos = new idx[st];
-	faceidx = new idx[sb];
-	facepos = new idx[sb];
+	nT = tetstart[nP];
+	nF = facestart[nP];
+	tetidx = new idx[nT];
+	tetpos = new idx[nT];
+	faceidx = new idx[nF];
+	facepos = new idx[nF];
 	sb = st = 0;
 	for (idx i=0; i<nP; i++) {
 		Vertex *v = _m->vertices[i];

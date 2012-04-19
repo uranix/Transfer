@@ -8,7 +8,10 @@
 
 int main() {
 	AngularData ad(1); /* maxk = 1, maxl = 2*/
-	MeshData md("D:/mesh.vol");
+	MeshData md("mesh.vol");
+
+	DeviceAngularData dad(ad);
+	DeviceMeshData dmd(md);
 
 	return 0;
 }

@@ -21,6 +21,7 @@ Computes right-hand size of SLAE r = (e_i, I_p)
  */
 
 __global__ void rightHandSide(	DeviceMeshDataRaw md,
+								DeviceAngularDataRaw ad,
 								REAL *r)
 {
 	__shared__ tetrahedron stet;
@@ -28,8 +29,8 @@ __global__ void rightHandSide(	DeviceMeshDataRaw md,
 
 	idx *start = md.tetstart;
 	idx *tetidx = md.tetidx;
-	idx *pos = md.tetpos;
 	tetrahedron *mesh = md.mesh; 
+	idx aslm = ad.aslm;
 
 	idx vertex = blockIdx.x + blockIdx.y * gridDim.x;
 	idx lm = threadIdx.x;
@@ -40,8 +41,6 @@ __global__ void rightHandSide(	DeviceMeshDataRaw md,
 	hi = start[vertex+1];
 	for (int j = lo; j < hi; j++) {
 		__syncthreads();
-		idx local = pos[j];
-		
 		dmemcpy(tet, mesh+tetidx[j], sizeof(tetrahedron));
 		__syncthreads();
 		if (lm == 0)
@@ -121,7 +120,7 @@ __global__ void volumePart(	DeviceMeshDataRaw md,
 		
 		dmemcpy(tet, mesh+tetidx[j], sizeof(tetrahedron));
 		__syncthreads();
-		fc = 0;
+		fsum = 0;
 		#pragma unroll
 		for (int s = 0; s < 4; s++) {
 			REAL tmp = f[aslm*tet->p[s] + lm];
