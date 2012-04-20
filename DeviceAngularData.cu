@@ -2,6 +2,8 @@
 
 #include "common.cuh"
 
+#include <stdio.h>
+
 __global__ void copy_omega(REAL *dst, REAL *src, idx slm) {
 	idx aslm = blockDim.x;
 	#pragma unroll
@@ -40,6 +42,13 @@ DeviceAngularData::DeviceAngularData(const AngularData &host) {
 	cudaMalloc((void **)&Ox, aslm*aslm*sizeof(REAL));
 	cudaMalloc((void **)&Oy, aslm*aslm*sizeof(REAL));
 	cudaMalloc((void **)&Oz, aslm*aslm*sizeof(REAL));
+
+	printf("DeviceAngularData:\n");
+	printf("\tomega     = %p\n", omega);
+	printf("\tomega_pos = %p\n", omega_pos);
+	printf("\tOx        = %p\n", Ox);
+	printf("\tOy        = %p\n", Oy);
+	printf("\tOz        = %p\n", Oz);
 
 	void *tmp;
 	dim3 block;

@@ -6,12 +6,12 @@ CXXFLAGS=$(CFLAGS)
 
 CUDA_INSTALL_PATH=/usr/local/cuda
 NVCC=$(CUDA_INSTALL_PATH)/bin/nvcc
-NVCCFLAGS= -I. -O0 -g -Xcompiler "$(CFLAGS)"\
+NVCCFLAGS= -I. -O0 -g -G -Xcompiler "$(CFLAGS)"\
 		   -m32 \
 		   -arch sm_20 \
 		   --keep --keep-dir cufiles
 
-LDFLAGS=-m32
+LDFLAGS=-m32 -g
 PTXFLAGS= -v -O2
 LIBS= -L/usr/local/cuda/lib/ -LmeshProcessor -lmesh3d -lcudart
 

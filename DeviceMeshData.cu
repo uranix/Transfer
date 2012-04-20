@@ -26,14 +26,14 @@ DeviceMeshData::DeviceMeshData(const MeshData &host) {
 	_(cudaMalloc((void **)&bnd, host.nF*sizeof(face)));
 
 	printf("DeviceMeshData:\n");
-	printf("\tmesh		= %p\n",mesh);
-	printf("\ttetstart	= %p\n",tetstart);
-	printf("\ttetidx	= %p\n",tetidx);
-	printf("\ttetpos	= %p\n",tetpos);
-	printf("\tbnd		= %p\n",bnd);
+	printf("\tmesh      = %p\n",mesh);
+	printf("\ttetstart  = %p\n",tetstart);
+	printf("\ttetidx    = %p\n",tetidx);
+	printf("\ttetpos    = %p\n",tetpos);
+	printf("\tbnd       = %p\n",bnd);
 	printf("\tfacestart = %p\n",facestart);
-	printf("\tfaceidx 	= %p\n",faceidx);
-	printf("\tfacepos	= %p\n",facepos);
+	printf("\tfaceidx   = %p\n",faceidx);
+	printf("\tfacepos   = %p\n",facepos);
 
 	_(cudaMemcpy(tetstart, host.tetstart, (host.nP+1)*sizeof(idx), cudaMemcpyHostToDevice));
 

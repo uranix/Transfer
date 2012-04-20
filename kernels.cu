@@ -47,6 +47,9 @@ __global__ void rightHandSide(	DeviceMeshDataRaw md,
 	if (vertex >= md.nP)
 		return;
 
+	idx *foobar = start + vertex;	
+	__printf("[%p] = %.8x\n", foobar, *foobar);
+
 	lo = start[vertex];
 	hi = start[vertex+1];
 	for (int j = lo; j < hi; j++) {
