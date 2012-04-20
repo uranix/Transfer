@@ -7,7 +7,8 @@
 #include "MeshData.h"
 #include "kernels.h"
 
-int main() {
+int main(int argc, char **argv) {
+	CudaContext::setDevice(7);
 	AngularData ad(1); /* maxk = 1, maxl = 2*/
 	MeshData md("mesh.vol");
 
@@ -29,8 +30,13 @@ int main() {
 
 	REAL tau = 0.01;
 
+	idx N = 5;
+
+	if (argc > 1) 
+		N = atoi(argv[1]);
+
 	ctx->copyToDev(f, _f, dad.aslm * dmd.nP * sizeof(REAL));
-	for (int it = 0; it < 1; it++) {
+	for (int it = 0; it < N; it++) {
 		printf("%d iteration \n", it);
 		ctx->computeRhs(f, Af, b);
 		ctx->addProd(b, Af, -1);

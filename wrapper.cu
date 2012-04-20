@@ -12,11 +12,6 @@
 
 #include "kernels.cu"
 
-__global__ void inspectDeviceStructures(DeviceMeshDataRaw md, DeviceAngularDataRaw ad) {
-	idx lm = threadIdx.x;
-	idx vertex = blockIdx.x + blockIdx.y * blockDim.x;
-}
-
 void CudaContext::setDevice(int dev) {
 	_(cudaSetDevice(dev));
 }
@@ -37,12 +32,6 @@ void CudaContext::copyToDev(void *dst, void *src, size_t sz) {
 
 void CudaContext::copyToHost(void *dst, void *src, size_t sz) {
 	_(cudaMemcpy(dst, src, sz, cudaMemcpyDeviceToHost));
-}
-
-void CudaContext::inspectStructures() {
-	dim3 grid(meshdata->nPlow, meshdata->nPhigh);
-	dim3 block(angdata->slm); /* no need of extra threads in block */
-	inspectDeviceStructures<<<grid, block>>>(*reinterpret_cast<const DeviceMeshDataRaw *>(meshdata), *reinterpret_cast<const DeviceAngularDataRaw *>(angdata));
 }
 
 void CudaContext::computeRhs(REAL *f, REAL *Af, REAL *b) {

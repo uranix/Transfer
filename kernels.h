@@ -5,14 +5,12 @@
 
 struct CudaContext {
 	REAL *red;
+	static void setDevice(int dev);
 	const DeviceMeshData *meshdata;
 	const DeviceAngularData *angdata;
 	CudaContext (int dev, const DeviceMeshData *dmd, const DeviceAngularData *dad) : meshdata(dmd), angdata(dad) {
-		setDevice(dev);
 		red = (REAL *)deviceAlloc(sizeof(REAL));
 	}
-	void setDevice(int);
-	void inspectStructures();
 	void *deviceAlloc(size_t size);
 	void deviceFree(void *mem);
 	void copyToDev(void *dst, void *src, size_t sz);

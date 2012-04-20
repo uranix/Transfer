@@ -4,6 +4,14 @@
 
 #include <stdio.h>
 
+#ifndef _
+#define _(x) do { \
+	if ((x) != cudaSuccess) { \
+	fprintf(stderr, "File %s line %d, %s failed with error `%s'\n", __FILE__, __LINE__, #x, cudaGetErrorString(cudaGetLastError())); \
+	fflush(stderr); } \
+} while (0)
+#endif
+
 __global__ void copy_omega(REAL *dst, REAL *src, idx slm) {
 	idx aslm = blockDim.x;
 	#pragma unroll
@@ -37,11 +45,11 @@ __global__ void copy_On(REAL *dst, REAL *src, idx slm) {
 DeviceAngularData::DeviceAngularData(const AngularData &host) {
 	slm = host.slm;
 	aslm = align_power(host.slm, COALESCED_NUM(REAL));
-	cudaMalloc((void **)&omega, 3*aslm*aslm*sizeof(REAL));
-	cudaMalloc((void **)&omega_pos, 3*aslm*aslm*sizeof(idx));
-	cudaMalloc((void **)&Ox, aslm*aslm*sizeof(REAL));
-	cudaMalloc((void **)&Oy, aslm*aslm*sizeof(REAL));
-	cudaMalloc((void **)&Oz, aslm*aslm*sizeof(REAL));
+	_(cudaMalloc((void **)&omega, 3*aslm*aslm*sizeof(REAL)));
+	_(cudaMalloc((void **)&omega_pos, 3*aslm*aslm*sizeof(idx)));
+	_(cudaMalloc((void **)&Ox, aslm*aslm*sizeof(REAL)));
+	_(cudaMalloc((void **)&Oy, aslm*aslm*sizeof(REAL)));
+	_(cudaMalloc((void **)&Oz, aslm*aslm*sizeof(REAL)));
 
 	printf("DeviceAngularData:\n");
 	printf("\tomega     = %p\n", omega);
@@ -52,30 +60,30 @@ DeviceAngularData::DeviceAngularData(const AngularData &host) {
 
 	void *tmp;
 	dim3 block;
-	cudaMalloc((void **)&tmp, 3*aslm*aslm*sizeof(REAL));
+	_(cudaMalloc((void **)&tmp, 3*aslm*aslm*sizeof(REAL)));
 
-	cudaMemcpy(tmp, host.omega, 3*slm*slm*sizeof(REAL), cudaMemcpyHostToDevice);
+	_(cudaMemcpy(tmp, host.omega, 3*slm*slm*sizeof(REAL), cudaMemcpyHostToDevice));
 	copy_omega<<<aslm,aslm>>>(omega, (REAL *)tmp, slm);
 
-	cudaMemcpy(tmp, host.omega_pos, 3*slm*slm*sizeof(idx), cudaMemcpyHostToDevice);
+	_(cudaMemcpy(tmp, host.omega_pos, 3*slm*slm*sizeof(idx), cudaMemcpyHostToDevice));
 	copy_omega_pos<<<aslm,aslm>>>(omega_pos, (idx *)tmp, slm);
 
-	cudaMemcpy(tmp, host.Ox, slm*slm*sizeof(REAL), cudaMemcpyHostToDevice);
+	_(cudaMemcpy(tmp, host.Ox, slm*slm*sizeof(REAL), cudaMemcpyHostToDevice));
 	copy_On<<<aslm,aslm>>>(Ox, (REAL *)tmp, slm);
 
-	cudaMemcpy(tmp, host.Oy, slm*slm*sizeof(REAL), cudaMemcpyHostToDevice);
+	_(cudaMemcpy(tmp, host.Oy, slm*slm*sizeof(REAL), cudaMemcpyHostToDevice));
 	copy_On<<<aslm,aslm>>>(Oy, (REAL *)tmp, slm);
 
-	cudaMemcpy(tmp, host.Oz, slm*slm*sizeof(REAL), cudaMemcpyHostToDevice);
+	_(cudaMemcpy(tmp, host.Oz, slm*slm*sizeof(REAL), cudaMemcpyHostToDevice));
 	copy_On<<<aslm,aslm>>>(Oz, (REAL *)tmp, slm);
 
-	cudaFree(tmp);
+	_(cudaFree(tmp));
 }
 
 DeviceAngularData::~DeviceAngularData() {
-	cudaFree(omega);
-	cudaFree(omega_pos);
-	cudaFree(Ox);
-	cudaFree(Oy);
-	cudaFree(Oz);
+	_(cudaFree(omega));
+	_(cudaFree(omega_pos));
+	_(cudaFree(Ox));
+	_(cudaFree(Oy));
+	_(cudaFree(Oz));
 }

@@ -49,7 +49,6 @@ DeviceMeshData::DeviceMeshData(const MeshData &host) {
 }
 
 DeviceMeshData::~DeviceMeshData() {
-	printf("deleting\n");
 	_(cudaFree(tetstart));
 	_(cudaFree(tetidx));
 	_(cudaFree(tetpos));

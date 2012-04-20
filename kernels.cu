@@ -47,9 +47,6 @@ __global__ void rightHandSide(	DeviceMeshDataRaw md,
 	if (vertex >= md.nP)
 		return;
 
-	idx *foobar = start + vertex;	
-	__printf("[%p] = %.8x\n", foobar, *foobar);
-
 	lo = start[vertex];
 	hi = start[vertex+1];
 	for (int j = lo; j < hi; j++) {
@@ -242,7 +239,7 @@ __global__ void surfacePart( DeviceMeshDataRaw md,
 	for (int j = lo; j < hi; j++) {
 		__syncthreads();
 		idx local = pos[j];	
-		dmemcpy(tr, bnd + faceidx[j], sizeof(tr));
+		dmemcpy(tr, bnd + faceidx[j], sizeof(face));
 		__syncthreads();
 		REAL surf = abs(tr->s[0] + tr->s[1] + tr->s[2]);
 		if (2*abs(tr->s[0]) > surf)
@@ -260,7 +257,7 @@ __global__ void surfacePart( DeviceMeshDataRaw md,
 		}
 		__syncthreads();
 		for (int lms = 0; lms < slm; lms ++)
-			sum += surf * On[aslm * lms + lm] * (fv[local*aslm + slm] + fv[3*aslm + slm]) * (1. / 12.);
+			sum += surf * On[aslm * lms + lm] * (fv[local*aslm + lms] + fv[3*aslm + lms]) * (1. / 12.);
 	}
 	r[aslm*vertex + lm] += sum;
 }

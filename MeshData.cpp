@@ -80,7 +80,7 @@ MeshData::MeshData(const char *fn) {
 		for (int k=0; k<3; k++)
 			bnd[j].p[k] = f->p[k]->index;
 		Vector s(f->normal);
-		s.scale(f->surface); /* note the minus */
+		s.scale(f->surface);
 		bnd[j].s[0] = s.x;
 		bnd[j].s[1] = s.y;
 		bnd[j].s[2] = s.z;
