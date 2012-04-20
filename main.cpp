@@ -29,10 +29,9 @@ int main(int argc, char **argv) {
 	REAL *_b = new REAL[dad.aslm * dmd.nP];
 
 
-	idx N = 5;
+	idx N = dad.aslm * dmd.nP;
 
-	if (argc > 1) 
-		N = atoi(argv[1]);
+	double *Z = new double[N*N];
 
 	FILE *file = fopen("matrix.txt", "w");
 	ctx->computeRhs(b);
@@ -45,13 +44,24 @@ int main(int argc, char **argv) {
 		ctx->copyToDev(f, _f, dad.aslm * dmd.nP * sizeof(REAL));
 		ctx->computeLhs(f, Ap);
 		ctx->copyToHost(_Af, Ap, dad.aslm * dmd.nP * sizeof(REAL));
-		for (int i = 0; i < dad.aslm * dmd.nP; i++)
+		for (int i = 0; i < dad.aslm * dmd.nP; i++) {
+			Z[k*N+i] = _Af[i];
 			fprintf(file, "% 2.16e ", _Af[i]);
+		}
 		fprintf(file, "% 2.16e ", _b[k]);
 		fprintf(file, "\n");
 	}
 	fclose(file);
 	printf("Matrix dumped\n");
+
+	for (int i=0; i<N; i++)
+		for (int j=0; j<N; j++) {
+			if (fabs(Z[N*i+j]-Z[N*j+i]) > 1e-10)
+				printf("Z[%d,%d] < %2.2e > Z[%d,%d]\n", i, j, fabs(Z[N*i+j]-Z[N*j+i]), j, i);
+		}
+
+
+	return 0;
 	
 	/*--------*/
 
