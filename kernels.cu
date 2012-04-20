@@ -5,14 +5,21 @@
 
 #include "common.cuh"
 
+#include <stdio.h>
+#ifdef NDEBUG
+#define __printf(x, ...) do {} while (0)
+#else 
+#define __printf(x, ...) printf(x, __VA_ARGS__)
+#endif
+
 /*
    sz must be multiple of sizeof(copy_unit);
    dst and src should be aligned of sizeof(copy_unit) boundary
  */
-__device__ void dmemcpy(void *_dst, const void *_src, idx sz) {
+__device__ void dmemcpy(void *_dst, const void *_src, size_t sz) {
 	copy_unit *dst = (copy_unit *)_dst;
 	copy_unit *src = (copy_unit *)_src;
-	for (idx s = threadIdx.x, smax = sz / sizeof(copy_unit); s < smax; s++)
+	for (idx s = threadIdx.x, smax = sz / sizeof(copy_unit); s < smax; s += blockDim.x)
 		dst[s] = src[s];
 }
 

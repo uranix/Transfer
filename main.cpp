@@ -14,9 +14,11 @@ int main() {
 	DeviceAngularData dad(ad);
 	DeviceMeshData dmd(md);
 
-	REAL *f = (REAL *)deviceAlloc(dad.aslm * dmd.nP * sizeof(REAL));
-	REAL *Af = (REAL *)deviceAlloc(dad.aslm * dmd.nP * sizeof(REAL));
-	REAL *b = (REAL *)deviceAlloc(dad.aslm * dmd.nP * sizeof(REAL));
+	CudaContext *ctx = new CudaContext (7, &dmd, &dad);
+
+	REAL *f = (REAL *)ctx->deviceAlloc(dad.aslm * dmd.nP * sizeof(REAL));
+	REAL *Af = (REAL *)ctx->deviceAlloc(dad.aslm * dmd.nP * sizeof(REAL));
+	REAL *b = (REAL *)ctx->deviceAlloc(dad.aslm * dmd.nP * sizeof(REAL));
 
 	REAL *_f = new REAL[dad.aslm * dmd.nP];
 	REAL *_Af = new REAL[dad.aslm * dmd.nP];
@@ -25,10 +27,18 @@ int main() {
 	for (int i = 0; i < dad.aslm * dmd.nP; i++)
 		_f[i] = 1;
 
-	copyToDev(f, _f, dad.aslm * dmd.nP * sizeof(REAL));
-	computeRhs(&dmd, &dad, f, Af, b);
-	copyToHost(_b, b, dad.aslm * dmd.nP * sizeof(REAL));
-	copyToHost(_Af, Af, dad.aslm * dmd.nP * sizeof(REAL));
+	REAL tau = 0.01;
+
+	ctx->copyToDev(f, _f, dad.aslm * dmd.nP * sizeof(REAL));
+	for (int it = 0; it < 1; it++) {
+		printf("%d iteration \n", it);
+		ctx->computeRhs(f, Af, b);
+		ctx->addProd(b, Af, -1);
+		ctx->addProd(f, b, tau);
+	}
+	ctx->copyToHost(_f, f, dad.aslm * dmd.nP * sizeof(REAL));
+	ctx->copyToHost(_b, b, dad.aslm * dmd.nP * sizeof(REAL));
+	ctx->copyToHost(_Af, Af, dad.aslm * dmd.nP * sizeof(REAL));
 
 	return 0;
 }

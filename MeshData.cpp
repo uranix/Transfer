@@ -87,7 +87,7 @@ MeshData::MeshData(const char *fn) {
 		j++;
 	}
 
-	printf("Mesh has %d tetrahedra and %d boundary faces\n", _m->nElems, _m->nBndFaces);
+	printf("Mesh has %d points, %d tetrahedra and %d boundary faces\n", _m->nVert, _m->nElems, _m->nBndFaces);
 }
 
 MeshData::~MeshData() {
