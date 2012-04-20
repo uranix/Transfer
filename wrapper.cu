@@ -19,6 +19,7 @@ void CudaContext::setDevice(int dev) {
 void *CudaContext::deviceAlloc(size_t size) {
 	void *ret;
 	_(cudaMalloc(&ret, size));
+	_(cudaMemset(ret, 0, size));
 	return ret;
 }
 
@@ -34,11 +35,16 @@ void CudaContext::copyToHost(void *dst, void *src, size_t sz) {
 	_(cudaMemcpy(dst, src, sz, cudaMemcpyDeviceToHost));
 }
 
-void CudaContext::computeRhs(REAL *f, REAL *Af, REAL *b) {
+void CudaContext::computeRhs(REAL *b) {
 	dim3 grid(meshdata->nPlow, meshdata->nPhigh);
 	dim3 block(angdata->slm); /* no need of extra threads in block */
 	rightHandSide<<<grid, block>>>(*reinterpret_cast<const DeviceMeshDataRaw *>(meshdata), *reinterpret_cast<const DeviceAngularDataRaw *>(angdata), b);
 	_(/*rightHandSide*/cudaDeviceSynchronize());
+}
+
+void CudaContext::computeLhs(REAL *f, REAL *Af) {
+	dim3 grid(meshdata->nPlow, meshdata->nPhigh);
+	dim3 block(angdata->slm); /* no need of extra threads in block */
 	volumePart<<<grid, block>>>(*reinterpret_cast<const DeviceMeshDataRaw *>(meshdata), *reinterpret_cast<const DeviceAngularDataRaw *>(angdata), f, Af);
 	_(/*volumePart*/cudaDeviceSynchronize());
 	surfacePart<<<grid, block>>>(*reinterpret_cast<const DeviceMeshDataRaw *>(meshdata), *reinterpret_cast<const DeviceAngularDataRaw *>(angdata), f, Af);
@@ -98,7 +104,7 @@ void CudaContext::mulAddProd(REAL *x, const REAL wx, const REAL *y, const REAL w
 	_(/*mullAddProd*/cudaDeviceSynchronize());
 }
 
-__global__ void normKern(idx nP, idx aslm, idx slm, REAL *x, REAL *res) {
+__global__ void normKern(idx nP, idx aslm, idx slm, const REAL *x, REAL *res) {
 	__shared__ REAL reduce[ASLM_MAX];
 	idx lm = threadIdx.x;
 
@@ -120,7 +126,28 @@ __global__ void normKern(idx nP, idx aslm, idx slm, REAL *x, REAL *res) {
 		res[0] = reduce[0];
 }
 
-REAL CudaContext::norm(REAL *x) {
+__global__ void dotKern(idx nP, idx aslm, idx slm, const REAL *x, const REAL *y, REAL *res) {
+	__shared__ REAL reduce[ASLM_MAX];
+	idx lm = threadIdx.x;
+
+	reduce[lm] = 0;
+	if (lm < slm) {
+		for (idx i = lm, j = nP*aslm; i < j; i += aslm) {
+			reduce[lm] += x[i]*y[i];
+		}
+	} 
+	__syncthreads();
+#pragma unroll
+	for (idx s = ASLM_MAX >> 1; s > 0; s>>=1) {
+		if (lm < s)
+			reduce[lm] += reduce[lm + s];
+		__syncthreads();
+	}
+	if (lm == 0)
+		res[0] = reduce[0];
+}
+
+REAL CudaContext::norm(const REAL *x) {
 	dim3 grid(1, 1);
 	dim3 block(ASLM_MAX);
 	normKern<<<grid, block>>>(meshdata->nP, angdata->slm, angdata->aslm, x, red);
@@ -128,4 +155,13 @@ REAL CudaContext::norm(REAL *x) {
 	copyToHost(&hred, red, sizeof(REAL));
 	hred /= meshdata->nP * angdata->slm;
 	return sqrt(hred);
+}	
+
+REAL CudaContext::dot(const REAL *x, const REAL *y) {
+	dim3 grid(1, 1);
+	dim3 block(ASLM_MAX);
+	dotKern<<<grid, block>>>(meshdata->nP, angdata->slm, angdata->aslm, x, y, red);
+	REAL hred;
+	copyToHost(&hred, red, sizeof(REAL));
+	return hred;
 }	

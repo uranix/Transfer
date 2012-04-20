@@ -15,11 +15,13 @@ struct CudaContext {
 	void deviceFree(void *mem);
 	void copyToDev(void *dst, void *src, size_t sz);
 	void copyToHost(void *dst, void *src, size_t sz);
-	void computeRhs(REAL *f, REAL *Af, REAL *b);
+	void computeLhs(REAL *f, REAL *Af);
+	void computeRhs(REAL *b);
 	void addProd(REAL *x, const REAL *y, const REAL wy);
 	void mulAdd(REAL *x, const REAL wx, const REAL *y);
 	void mulAddProd(REAL *x, const REAL wx, const REAL *y, const REAL wy);
-	REAL norm(REAL *x);
+	REAL norm(const REAL *x);
+	REAL dot(const REAL *x, const REAL *y);
 };
 
 #endif
