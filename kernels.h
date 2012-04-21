@@ -15,6 +15,7 @@ struct CudaContext {
 	void deviceFree(void *mem);
 	void copyToDev(void *dst, void *src, size_t sz);
 	void copyToHost(void *dst, void *src, size_t sz);
+	REAL *getHostSmall(void *src);
 	void computeLhs(REAL *f, REAL *Af);
 	void computeRhs(REAL *b);
 	void addProd(REAL *x, const REAL *y, const REAL wy);

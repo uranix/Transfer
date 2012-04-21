@@ -35,6 +35,20 @@ void CudaContext::copyToHost(void *dst, void *src, size_t sz) {
 	_(cudaMemcpy(dst, src, sz, cudaMemcpyDeviceToHost));
 }
 
+REAL *CudaContext::getHostSmall(void *src) {
+	REAL *p = (REAL *)malloc(angdata->slm * meshdata->nP * sizeof(REAL)), 
+		 *q = (REAL *)malloc(angdata->aslm * meshdata->nP * sizeof(REAL));
+	_(cudaMemcpy(q, src, angdata->aslm * meshdata->nP * sizeof(REAL), cudaMemcpyDeviceToHost));
+	for (int i = 0; i < meshdata->nP; i++) {
+		for (int j = 0; j < angdata->aslm; j++)
+			if (j < angdata->slm)
+				p[i * angdata->slm + j] = 
+					q[i * angdata->aslm + j];
+	}
+	free(q);
+	return p;
+}
+
 void CudaContext::computeRhs(REAL *b) {
 	dim3 grid(meshdata->nPlow, meshdata->nPhigh);
 	dim3 block(angdata->slm); /* no need of extra threads in block */
@@ -150,7 +164,7 @@ __global__ void dotKern(idx nP, idx aslm, idx slm, const REAL *x, const REAL *y,
 REAL CudaContext::norm(const REAL *x) {
 	dim3 grid(1, 1);
 	dim3 block(ASLM_MAX);
-	normKern<<<grid, block>>>(meshdata->nP, angdata->slm, angdata->aslm, x, red);
+	normKern<<<grid, block>>>(meshdata->nP, angdata->aslm, angdata->slm, x, red);
 	REAL hred;
 	copyToHost(&hred, red, sizeof(REAL));
 	hred /= meshdata->nP * angdata->slm;
@@ -160,7 +174,7 @@ REAL CudaContext::norm(const REAL *x) {
 REAL CudaContext::dot(const REAL *x, const REAL *y) {
 	dim3 grid(1, 1);
 	dim3 block(ASLM_MAX);
-	dotKern<<<grid, block>>>(meshdata->nP, angdata->slm, angdata->aslm, x, y, red);
+	dotKern<<<grid, block>>>(meshdata->nP, angdata->aslm, angdata->slm, x, y, red);
 	REAL hred;
 	copyToHost(&hred, red, sizeof(REAL));
 	return hred;

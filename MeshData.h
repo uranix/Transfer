@@ -22,7 +22,6 @@ struct MeshData {
 	MeshData(const char *fn);
 	~MeshData();
 
-private:
 	Mesh *_m;
 };
 
