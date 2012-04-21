@@ -293,8 +293,8 @@ void Mesh::saveVtk(char *fn, int nExtraCellData, int nExtraPointData, ...) {
 	}
 
 	fprintf(f, "\nPOINT_DATA %9d\n", nVert);
-	fprintf(f, "\nFIELD ExtraCellData %d\n", nExtraCellData);
-	for (int nextra = 0; nextra < nExtraCellData; nextra++) {
+	fprintf(f, "\nFIELD ExtraPointData %d\n", nExtraPointData);
+	for (int nextra = 0; nextra < nExtraPointData; nextra++) {
 		double *p = va_arg(args, double *);
 		fprintf(f, "\nextra_data%.4d 1 %9d double\n", nextra, nVert);
 		for (int i=0; i<nVert; i++)
