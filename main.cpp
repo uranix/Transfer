@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
 		ctx->copyToHost(_Af, Ap, dad.aslm * dmd.nP * sizeof(REAL));
 		for (int i = 0; i < dad.aslm * dmd.nP; i++)
 			Z[k*N+i] = _Af[i];
-		int j = k % dmd.nP;
+		int j = k % dad.aslm;
 		if (j < dad.slm) {
 			for (int i = 0; i < dmd.nP; i++) 
 				for (j = 0; j < dad.slm; j++) 
@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
 		ctx->addProd(r, Ap, -alpha);
 		double nr = ctx->norm(r);
 		printf("norm r = %e\n", nr);
-		if (nr < 1e-20)
+		if (nr < 1e-16)
 			break;
 		ctx->mulAdd(z, 0, r); /* z = invprec(r); */
 		double nrz2 = ctx->dot(z, r);
