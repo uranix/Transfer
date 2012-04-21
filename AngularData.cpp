@@ -27,17 +27,18 @@ AngularData::AngularData(int maxk) {
 		for (int m1 = -l1; m1 <= l1; m1++, lm1++)
 			for (int l2 = 0, lm2 = 0; l2 <=2*maxk; l2+=2)
 				for (int m2 = -l2; m2 <= l2; m2++, lm2++) {
-					REAL sum = 0;
 					for (int i = 0; i<3; i++) {
 						for (int j = 0; j<3; j++) {
 							REAL *r1 = (i==0)?q.x:(i==1)?q.y:q.z;
 							REAL *r2 = (j==0)?q.x:(j==1)?q.y:q.z;
+							REAL sum = 0;
 							for (int p = 0; p < q.order; p++) {
 								REAL t1 = s.value(l1, m1, q.x[p], q.y[p], q.z[p]);
 								REAL t2 = s.value(l2, m2, q.x[p], q.y[p], q.z[p]);
 								sum += q.w[p] * t1 * t2 * r1[p] * r2[p];
 							}
 							if ((fabs(sum) > 1e-10) || j == 2) {
+							//	prinf("l1 = % d l2 = % d m1 = % d m2 = % d i = % d j = % d s = %e", l1, l2, m1, m2, i, j, sum);
 								omega[i*aslm*aslm + aslm * lm1 + lm2] = sum;
 								omega_pos[i*aslm*aslm + aslm * lm1 + lm2] = j;
 								break;

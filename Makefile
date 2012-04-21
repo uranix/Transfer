@@ -8,7 +8,7 @@ CUDA_INSTALL_PATH=/usr/local/cuda
 NVCC=$(CUDA_INSTALL_PATH)/bin/nvcc
 NVCCFLAGS= -I. -O0 -g -G -Xcompiler "$(CFLAGS)"\
 		   -m32 \
-		   -arch sm_20 \
+		   -arch sm_13 \
 		   --keep --keep-dir cufiles
 
 LDFLAGS=-m32 -g

@@ -8,8 +8,8 @@
 #include "kernels.h"
 
 int main(int argc, char **argv) {
-	CudaContext::setDevice(7);
-	AngularData ad(1); /* maxk = 1, maxl = 2*/
+	CudaContext::setDevice(0);
+	AngularData ad(0); /* maxk = 1, maxl = 2*/
 	MeshData md("mesh.vol");
 
 	DeviceAngularData dad(ad);
@@ -28,7 +28,6 @@ int main(int argc, char **argv) {
 	REAL *_Af = new REAL[dad.aslm * dmd.nP];
 	REAL *_b = new REAL[dad.aslm * dmd.nP];
 
-
 	idx N = dad.aslm * dmd.nP;
 
 	double *Z = new double[N*N];
@@ -44,12 +43,18 @@ int main(int argc, char **argv) {
 		ctx->copyToDev(f, _f, dad.aslm * dmd.nP * sizeof(REAL));
 		ctx->computeLhs(f, Ap);
 		ctx->copyToHost(_Af, Ap, dad.aslm * dmd.nP * sizeof(REAL));
-		for (int i = 0; i < dad.aslm * dmd.nP; i++) {
+		for (int i = 0; i < dad.aslm * dmd.nP; i++)
 			Z[k*N+i] = _Af[i];
-			fprintf(file, "% 2.16e ", _Af[i]);
+		int j = k % dmd.nP;
+		if (j < dad.slm) {
+			for (int i = 0; i < dmd.nP; i++) 
+				for (j = 0; j < dad.slm; j++) 
+			{
+				fprintf(file, "% 2.10e ", _Af[i*dad.aslm+j]);
+			}
+			fprintf(file, "% 2.10e ", _b[k]);
+			fprintf(file, "\n");
 		}
-		fprintf(file, "% 2.16e ", _b[k]);
-		fprintf(file, "\n");
 	}
 	fclose(file);
 	printf("Matrix dumped\n");
@@ -59,9 +64,6 @@ int main(int argc, char **argv) {
 			if (fabs(Z[N*i+j]-Z[N*j+i]) > 1e-10)
 				printf("Z[%d,%d] < %2.2e > Z[%d,%d]\n", i, j, fabs(Z[N*i+j]-Z[N*j+i]), j, i);
 		}
-
-
-	return 0;
 	
 	/*--------*/
 

@@ -64,12 +64,17 @@ MeshData::MeshData(const char *fn) {
 			mesh[i].p[j] = t->p[j]->index;
 		mesh[i].kappa_volume = t->volume * (t->region == 1? 10.: 1.);
 		mesh[i].I_p = t->region == 1? 10.: 0.;
+		Vector z(0,0,0);
 		for (int j=0; j<4; j++) {
 			Vector s(t->f[j]->normal);
 			s.scale( - t->f[j]->surface); /* note the minus */
+			z.add(s);
 			mesh[i].s[j][0] = s.x;
 			mesh[i].s[j][1] = s.y;
 			mesh[i].s[j][2] = s.z;
+		}
+		if (z.norm() > 1e-14) {
+			printf("Tet %d has sum of S_i = (%e,%e,%e)\n", i, z.x, z.y, z.z);
 		}
 	}
 
