@@ -1,5 +1,4 @@
 #include "MeshData.h"
-#include "Config.h"
 
 #include "meshProcessor/mesh.h"
 #include "meshProcessor/tetrahedron.h"

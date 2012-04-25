@@ -9,7 +9,11 @@ class Config {
 	double *Ip;
 	char meshfn[1024];
 public:	
-	Config(const char *cfgfile);
+	explicit Config(const char *cfgfile);
+	~Config() {
+		delete[] kappa;
+		delete[] Ip;
+	}
 	double getKappa(int region) const {
 		return kappa[region];
 	}

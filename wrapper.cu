@@ -1,4 +1,4 @@
-#include "kernels.h"
+#include "CudaContext.h"
 #include <stdio.h>
 #include <math.h>
 

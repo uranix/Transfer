@@ -8,8 +8,10 @@
 Config::Config(const char *cfgfile) {
 	FILE *f = fopen(cfgfile, "r");
 	char buf[1024];
-	if (!f)
+	if (!f) {
+		fprintf(stderr, "failed to open file `%s'\n", cfgfile);
 		throw 123;
+	}
 
 	nreg = -1;
 	int line = -1;
@@ -63,6 +65,7 @@ Config::Config(const char *cfgfile) {
 				die("meshfile parameter in section");
 				throw 130;
 			}
+			buf[strlen(buf)-1] = 0;
 			strncpy(meshfn, buf + 11, 1023);
 			meshfn[1023] = 0;
 			continue;
@@ -76,6 +79,8 @@ Config::Config(const char *cfgfile) {
 				die("scanf failed to parse parameter\n");
 				throw 132;
 			}
+			Ip = new double[nreg + 1];
+			kappa = new double[nreg + 1];
 			continue;
 		}
 		if (!strncmp(buf, "angorder", 8)) {
@@ -94,7 +99,7 @@ Config::Config(const char *cfgfile) {
 				die("device parameter in section");
 				throw 135;
 			}
-			if (sscanf(buf, "device = %d", &maxk) != 1) {
+			if (sscanf(buf, "device = %d", &dev) != 1) {
 				die("scanf failed to parse parameter\n");
 				throw 136;
 			}

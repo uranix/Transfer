@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
 	}
 	Config cfg(argv[1]);
 	AngularData ad(cfg.getMaxK()); 
-	MeshData md(cfg.getMeshFilename());
+	MeshData md(cfg);
 
 	CudaContext::setDevice(cfg.getDevice());
 	DeviceAngularData dad(ad);

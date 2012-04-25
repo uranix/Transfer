@@ -125,7 +125,11 @@ Mesh::Mesh(const char *fn) {
 	int i = 0, cnt = 0;
 
 	FILE *f = fopen(fn, "r");
-	if (!f) throw 0;
+	if (!f) {
+		fprintf(stderr, "%s:%d error opening file `%s'\n", __FILE__, __LINE__, fn);
+		fflush(stderr);
+		throw 0;
+	}
 	char buf[1024];
 	int nV = 0, nB = 0, nBx = 0, nT = 0;
 	double *vert = 0;
@@ -251,6 +255,11 @@ void Mesh::saveVtk(const char *fn, int nExtraCellData, int nExtraPointData, ...)
 	va_start(args, nExtraPointData);
 
 	f=fopen(fn, "w");
+	if (!f) {
+		fprintf(stderr, "%s:%d error opening file `%s'\n", __FILE__, __LINE__, fn);
+		fflush(stderr);
+		throw 1;
+	}
 	fprintf(f, "# vtk DataFile Version 2.0\n");
 	fprintf(f, "Generated output\n");
 	fprintf(f, "ASCII\n");

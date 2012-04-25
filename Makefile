@@ -1,12 +1,12 @@
 #CFLAGS=-m32 -O2 -Wall
 #CXXFLAGS=$(CFLAGS)
 
-CFLAGS=-m32 -O0 -g -Wall -ImeshProcessor
+CFLAGS=-m32 -O2 -Wall -ImeshProcessor
 CXXFLAGS=$(CFLAGS)
 
 CUDA_INSTALL_PATH=/usr/local/cuda
 NVCC=$(CUDA_INSTALL_PATH)/bin/nvcc
-NVCCFLAGS= -I. -O0 -g -G -Xcompiler "$(CFLAGS)"\
+NVCCFLAGS= -I. -O2 -Xcompiler "$(CFLAGS)"\
 		   -m32 \
 		   -arch sm_13 \
 		   --keep --keep-dir cufiles
