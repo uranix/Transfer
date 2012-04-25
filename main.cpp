@@ -33,9 +33,9 @@ int main(int argc, char **argv) {
 	REAL *r = (REAL *)ctx->deviceAlloc(dad.aslm * dmd.nP * sizeof(REAL));
 
 	REAL *_f = new REAL[dad.aslm * dmd.nP];
-	REAL *_r = new REAL[dad.aslm * dmd.nP];
 
 #if 0
+	REAL *_r = new REAL[dad.aslm * dmd.nP];
 	REAL *_Af = new REAL[dad.aslm * dmd.nP];
 	REAL *_b = new REAL[dad.aslm * dmd.nP];
 	idx N = dad.aslm * dmd.nP;
