@@ -94,7 +94,6 @@ int main(int argc, char **argv) {
 		double alpha = nrz/ctx->dot(p, Ap);
 		ctx->addProd(f, p, alpha);
 		ctx->addProd(r, Ap, -alpha);
-		ctx->copyToHost(_r, r, dad.aslm * dmd.nP * sizeof(REAL));
 		double nr = ctx->norm(r);
 		printf("k = %d norm r = %e\n", k, nr);
 		if (nr < 1e-10)
