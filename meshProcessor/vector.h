@@ -45,14 +45,18 @@ struct Vector {
 		return sqrt(x*x+y*y+z*z);
 	}
 	void serialize(FILE *f) const {
-		fwrite(&x, sizeof(x), 1, f);
-		fwrite(&y, sizeof(y), 1, f);
-		fwrite(&z, sizeof(z), 1, f);
+		int foo;
+		foo = fwrite(&x, sizeof(x), 1, f);
+		foo = fwrite(&y, sizeof(y), 1, f);
+		foo = fwrite(&z, sizeof(z), 1, f);
+		foo ++;
 	}
 	Vector(FILE *f) {
-		fread(&x, sizeof(x), 1, f);
-		fread(&y, sizeof(y), 1, f);
-		fread(&z, sizeof(z), 1, f);
+		int foo;
+		foo = fread(&x, sizeof(x), 1, f);
+		foo = fread(&y, sizeof(y), 1, f);
+		foo = fread(&z, sizeof(z), 1, f);
+		foo ++;
 	}
 };
 

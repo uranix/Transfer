@@ -39,8 +39,8 @@ REAL *CudaContext::getHostSmall(void *src) {
 	REAL *p = (REAL *)malloc(angdata->slm * meshdata->nP * sizeof(REAL)), 
 		 *q = (REAL *)malloc(angdata->aslm * meshdata->nP * sizeof(REAL));
 	_(cudaMemcpy(q, src, angdata->aslm * meshdata->nP * sizeof(REAL), cudaMemcpyDeviceToHost));
-	for (int i = 0; i < meshdata->nP; i++) {
-		for (int j = 0; j < angdata->aslm; j++)
+	for (idx i = 0; i < meshdata->nP; i++) {
+		for (idx j = 0; j < angdata->aslm; j++)
 			if (j < angdata->slm)
 				p[i * angdata->slm + j] = 
 					q[i * angdata->aslm + j];

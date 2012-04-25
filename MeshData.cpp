@@ -23,13 +23,15 @@ MeshData::MeshData(const Config &cfg) {
 		nb = v->bndnum;
 		tetstart[i+1] = tetstart[i] + nt;
 		facestart[i+1] = facestart[i] + nb;
+		st += nt;
+		sb += nb;
 	}
-	nT = tetstart[nP];
-	nF = facestart[nP];
-	tetidx = new idx[nT];
-	tetpos = new idx[nT];
-	faceidx = new idx[nF];
-	facepos = new idx[nF];
+	nT = _m->nElems;
+	nF = _m->nBndFaces;
+	tetidx = new idx[st];
+	tetpos = new idx[st];
+	faceidx = new idx[sb];
+	facepos = new idx[sb];
 	sb = st = 0;
 	for (idx i=0; i<nP; i++) {
 		Vertex *v = _m->vertices[i];

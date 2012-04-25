@@ -1,7 +1,7 @@
 #CFLAGS=-m32 -O2 -Wall
 #CXXFLAGS=$(CFLAGS)
 
-CFLAGS=-m32 -O2 -Wall -ImeshProcessor
+CFLAGS=-m32 -O0 -g -Wall -ImeshProcessor
 CXXFLAGS=$(CFLAGS)
 
 CUDA_INSTALL_PATH=/usr/local/cuda
