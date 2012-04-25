@@ -16,7 +16,7 @@ PTXFLAGS= -v -O2
 LIBS= -L/usr/local/cuda/lib/ -LmeshProcessor -lmesh3d -lcudart
 
 OBJS=main.o wrapper.o DeviceAngularData.o DeviceMeshData.o LebedevQuad.o \
-	 HemiQuad.o Spherical.o AngularData.o MeshData.o
+	 HemiQuad.o Spherical.o AngularData.o MeshData.o Config.o
 
 TARGET=main
 

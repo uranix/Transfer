@@ -245,7 +245,7 @@ Mesh::Mesh(const char *fn) {
 	if (tetmat) delete[] tetmat;
 }
 
-void Mesh::saveVtk(char *fn, int nExtraCellData, int nExtraPointData, ...) {
+void Mesh::saveVtk(const char *fn, int nExtraCellData, int nExtraPointData, ...) {
 	FILE *f;
 	va_list args;
 	va_start(args, nExtraPointData);

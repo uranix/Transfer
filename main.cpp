@@ -3,20 +3,27 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "meshProcessor/mesh.h"
+
 #include "AngularData.h"
 #include "MeshData.h"
-#include "meshProcessor/mesh.h"
-#include "kernels.h"
+#include "CudaContext.h"
+#include "Config.h"
 
 int main(int argc, char **argv) {
-	CudaContext::setDevice(0);
-	AngularData ad(1); /* maxk = 1, maxl = 2*/
-	MeshData md("mesh.vol");
+	if (argc != 2) {
+		fprintf(stderr, "USAGE: %s <config-file>\n", argv[0]);
+		return 1;
+	}
+	Config cfg(argv[1]);
+	AngularData ad(cfg.getMaxK()); 
+	MeshData md(cfg.getMeshFilename());
 
+	CudaContext::setDevice(cfg.getDevice());
 	DeviceAngularData dad(ad);
 	DeviceMeshData dmd(md);
 
-	CudaContext *ctx = new CudaContext (7, &dmd, &dad);
+	CudaContext *ctx = new CudaContext (&dmd, &dad);
 
 	REAL *f = (REAL *)ctx->deviceAlloc(dad.aslm * dmd.nP * sizeof(REAL));
 	REAL *b = (REAL *)ctx->deviceAlloc(dad.aslm * dmd.nP * sizeof(REAL));
@@ -71,7 +78,7 @@ int main(int argc, char **argv) {
 #endif
 	/*--------*/
 
-	for (int i = 0; i < dad.aslm * dmd.nP; i++)
+	for (idx i = 0; i < dad.aslm * dmd.nP; i++)
 		_f[i] = 0;
 	ctx->copyToDev(f, _f, dad.aslm * dmd.nP * sizeof(REAL));
 	ctx->computeRhs(b);
@@ -104,9 +111,9 @@ int main(int argc, char **argv) {
 
 	ctx->copyToHost(_f, f, dad.aslm * dmd.nP * sizeof(REAL));
 	REAL *u[dad.slm];
-	for (int k=0; k<dad.slm; k++) {
+	for (idx k=0; k<dad.slm; k++) {
 		u[k] = new REAL[md.nP];
-		for (int i = 0; i < md.nP; i++)
+		for (idx i = 0; i < md.nP; i++)
 			u[k][i] = _f[i*dad.aslm+k];
 	}
 	md._m->saveVtk("solution.vtk", 0, 1, u[0]);

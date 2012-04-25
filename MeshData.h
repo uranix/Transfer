@@ -4,6 +4,7 @@
 #include "util.h"
 #include "tetrahedron.h"
 #include "face.h"
+#include "config.h"
 
 class Mesh;
 
@@ -19,7 +20,7 @@ struct MeshData {
 	idx *faceidx;
 	idx *facepos;
 	face *bnd;
-	MeshData(const char *fn);
+	MeshData(const Config &cfg);
 	~MeshData();
 
 	Mesh *_m;

@@ -18,7 +18,7 @@ LIBS= -LmeshProcessor -lmesh3d
 #OBJS=main.o wrapper.o DeviceAngularData.o DeviceMeshData.o LebedevQuad.o \
 #	 HemiQuad.o Spherical.o AngularData.o MeshData.o
 
-OBJS=main.o LebedevQuad.o HemiQuad.o Spherical.o AngularData.o MeshData.o
+OBJS=main.o LebedevQuad.o HemiQuad.o Spherical.o AngularData.o MeshData.o Config.o
 
 TARGET=main
 

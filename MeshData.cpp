@@ -1,11 +1,12 @@
 #include "MeshData.h"
+#include "Config.h"
 
 #include "meshProcessor/mesh.h"
 #include "meshProcessor/tetrahedron.h"
 #include "meshProcessor/tri_face.h"
 
-MeshData::MeshData(const char *fn) {
-	_m = new Mesh(fn);
+MeshData::MeshData(const Config &cfg) {
+	_m = new Mesh(cfg.getMeshFilename());
 	bool check = _m->check();
 	tetstart = 0;
 	printf("Mesh check: %s\n", check ? "OK": "Failed");
@@ -58,12 +59,12 @@ MeshData::MeshData(const char *fn) {
 	mesh = new tetrahedron[_m->nElems];
 	bnd = new face[_m->nBndFaces];
 
-	for (idx i = 0; i < _m->nElems; i++) {
+	for (idx i = 0; i < (idx)_m->nElems; i++) {
 		Tetrahedron *t = (Tetrahedron *)_m->elements[i];
 		for (int j=0; j<4; j++)
 			mesh[i].p[j] = t->p[j]->index;
-		mesh[i].kappa_volume = t->volume * (t->region == 1? 10.: 1.);
-		mesh[i].I_p = t->region == 1? 10.: 0.;
+		mesh[i].kappa_volume = t->volume * cfg.getKappa(t->region);
+		mesh[i].I_p = cfg.getIp(t->region);
 		Vector z(0,0,0);
 		for (int j=0; j<4; j++) {
 			Vector s(t->f[j]->normal);
@@ -78,7 +79,7 @@ MeshData::MeshData(const char *fn) {
 		}
 	}
 
-	for (idx i = 0, j = 0; i < _m->nFaces; i++) {
+	for (idx i = 0, j = 0; i < (idx)_m->nFaces; i++) {
 		TriFace *f = (TriFace *)_m->faces[i];
 		if (f->bnd_index < 0)
 			continue;

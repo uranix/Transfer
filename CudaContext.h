@@ -1,4 +1,5 @@
-#ifndef __KERNELS_H__
+#ifndef __CUDACONTEXT_H__
+#define __CUDACONTEXT_H__
 
 #include "MeshData.h"
 #include "AngularData.h"
@@ -8,7 +9,7 @@ struct CudaContext {
 	static void setDevice(int dev);
 	const DeviceMeshData *meshdata;
 	const DeviceAngularData *angdata;
-	CudaContext (int dev, const DeviceMeshData *dmd, const DeviceAngularData *dad) : meshdata(dmd), angdata(dad) {
+	CudaContext (const DeviceMeshData *dmd, const DeviceAngularData *dad) : meshdata(dmd), angdata(dad) {
 		red = (REAL *)deviceAlloc(sizeof(REAL));
 	}
 	void *deviceAlloc(size_t size);
