@@ -30,10 +30,10 @@ DeviceAngularData::DeviceAngularData(const AngularData &host) {
 
 	dim3 block;
 	REAL *omega_aligned = new REAL[3*aslm*aslm];
-	REAL *omega_pos_aligned = new idx[3*aslm*aslm];
-	REAL *Ox_aligned = new idx[aslm*aslm];
-	REAL *Oy_aligned = new idx[aslm*aslm];
-	REAL *Oz_aligned = new idx[aslm*aslm];
+	idx *omega_pos_aligned = new idx[3*aslm*aslm];
+	idx *Ox_aligned = new idx[aslm*aslm];
+	idx *Oy_aligned = new idx[aslm*aslm];
+	idx *Oz_aligned = new idx[aslm*aslm];
 
 	for (idx i=0; i < aslm; i++)
 		for (idx j=0; j < aslm; j++) 

@@ -42,6 +42,8 @@ __global__ void mulAddProdKern(idx nP, idx aslm, REAL *x, const REAL wx, const R
 		x[i] = wx*x[i]+wy*y[i];
 }
 
+CT_ASSERT(ASLM_MAX == 256);
+
 /* TODO replace with proper, high performance version */
 __global__ void normKern(idx nP, idx aslm, idx slm, const REAL *x, REAL *res) {
 	__shared__ REAL reduce[ASLM_MAX];
@@ -55,12 +57,23 @@ __global__ void normKern(idx nP, idx aslm, idx slm, const REAL *x, REAL *res) {
 		}
 	} 
 	__syncthreads();
-#pragma unroll
-	for (idx s = ASLM_MAX >> 1; s > 0; s>>=1) {
+#define ITER(s) \
+	if (lm < (s)) \
+		reduce[lm] += reduce[lm + (s)]; \
+	__syncthreads();
+/*	for (idx s = ASLM_MAX >> 1; s > 0; s>>=1) {
 		if (lm < s)
 			reduce[lm] += reduce[lm + s];
 		__syncthreads();
-	}
+	} */
+	ITER(128); 
+	ITER(64);
+	ITER(32);
+	ITER(16);
+	ITER(8);
+	ITER(4);
+	ITER(2);
+	ITER(1);
 	if (lm == 0)
 		res[0] = reduce[0];
 }
@@ -169,7 +182,6 @@ Assumed:
 		~32 Kb blockDim.x = 1024
    */
 
-#define ASLM_MAX (256)
 
 __global__ void volumePart(	DeviceMeshDataRaw md,
 							DeviceAngularDataRaw ad,
