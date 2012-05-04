@@ -21,6 +21,6 @@ typedef uint32_t idx;
 #define ALIGN(x) __attribute__((aligned(x)))
 #endif
 
-typedef double REAL;
+typedef float REAL;
 
 #endif

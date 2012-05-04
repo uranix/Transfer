@@ -151,7 +151,7 @@ __global__ void rightHandSide(	DeviceMeshDataRaw md,
 		dmemcpy(tet, mesh+tetidx[j], sizeof(tetrahedron));
 		__syncthreads();
 		if (lm == 0)
-			sum += tet->kappa_volume * tet->I_p * (1. / 4.);
+			sum += tet->kappa_volume * tet->I_p * ((REAL)(1. / 4.));
 	}
 	r[aslm*vertex + lm] = sum;
 }
@@ -234,10 +234,10 @@ __global__ void volumePart(	DeviceMeshDataRaw md,
 			fl[s] = tmp; 
 			fsum += tmp;
 		}
-		sum += tet->kappa_volume * (fl[local] + fsum) * (1. / 20.);
+		sum += tet->kappa_volume * (fl[local] + fsum) * ((REAL)(1. / 20.));
 		#pragma unroll
 		for (int si = 0; si < 3; si++)
-			sum_i[si] = tet->s[local][si] / tet->kappa_volume * (1. / 9.); 
+			sum_i[si] = tet->s[local][si] / tet->kappa_volume * ((REAL)(1. / 9.)); 
 		#pragma unroll
 		for (idx sj = 0, v = lm; sj < 3; sj++, v += aslm) {
 			sums_j[v] = 0;
@@ -353,7 +353,7 @@ __global__ void surfacePart( DeviceMeshDataRaw md,
 		}
 		__syncthreads();
 		for (int lms = 0; lms < slm; lms ++)
-			sum += surf * On[aslm * lms + lm] * (fv[local*aslm + lms] + fv[3*aslm + lms]) * (1. / 12.);
+			sum += surf * On[aslm * lms + lm] * (fv[local*aslm + lms] + fv[3*aslm + lms]) * ((REAL)(1. / 12.));
 	}
 	r[aslm*vertex + lm] += sum;
 }

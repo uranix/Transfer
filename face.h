@@ -11,7 +11,7 @@ struct ALIGN(8) _face {
 	/* 4x4 = 16 */
 	REAL s[3]; // S_i \times mathbf{n_i}
 	/* 4x4 + 4x8 = 48 */
-	REAL _padd[3];
+	REAL _padd[sizeof(REAL) == 8 ? 3 : 9];
 } face;
 #pragma pack(pop)
 

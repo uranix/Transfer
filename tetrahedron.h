@@ -13,6 +13,7 @@ typedef struct ALIGN(8) _tetrahedron {
 	/* 4x4 + 2x8 = 32 */
 	REAL s[4][3]; // S_i \times mathbf{n_i}
 	/* 4x4 + 2x8 + 12x8 = 128 b */
+	REAL _padd[sizeof(REAL) == 8 ? 0 : 14];
 } tetrahedron;
 #pragma pack(pop)
 
