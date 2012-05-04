@@ -26,7 +26,12 @@ CudaContext::CudaContext(const int dev, const MeshData &dmd, const AngularData &
 	_(cuInit(0));
 	_(cuDeviceGet(&handle, dev));
 	_(cuCtxCreate(&this->_ctx, CU_CTX_SCHED_AUTO, handle));
-	_(cuModuleLoad(&_mod, "kernels.cubin"));
+	int major, minor;
+	_(cuDeviceComputeCapability(&major, &minor, handle));
+	char fn[1024];
+	sprintf(fn, "kernels.sm_%d%d.cubin", major, minor);
+	printf("Loading %s module\n", fn);
+	_(cuModuleLoad(&_mod, fn));
 	LOAD_KERNEL(addProdKern);
 	LOAD_KERNEL(mulAddKern);
 	LOAD_KERNEL(mulAddProdKern);

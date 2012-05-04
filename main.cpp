@@ -111,7 +111,7 @@ int main(int argc, char **argv) {
 		for (idx i = 0; i < ctx->meshdata->nP; i++)
 			u[k][i] = _f[i*ctx->angdata->aslm + k];
 	}
-	md._m->saveVtk("solution.vtk", 0, 1, u[0]);
+	md._m->saveVtk("solution.vtk", sizeof(REAL), 0, 1, u[0]);
 
 	delete ctx;
 

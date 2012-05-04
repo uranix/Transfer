@@ -249,7 +249,12 @@ Mesh::Mesh(const char *fn) {
 	if (tetmat) delete[] tetmat;
 }
 
-void Mesh::saveVtk(const char *fn, int nExtraCellData, int nExtraPointData, ...) {
+void Mesh::saveVtk(const char *fn, int realbytes, int nExtraCellData, int nExtraPointData, ...) {
+	typedef union {
+		double *d;
+		float *s;
+	} realptr;
+
 	FILE *f;
 	va_list args;
 	va_start(args, nExtraPointData);
@@ -295,19 +300,19 @@ void Mesh::saveVtk(const char *fn, int nExtraCellData, int nExtraPointData, ...)
 
 	fprintf(f, "\nFIELD ExtraCellData %d\n", nExtraCellData);
 	for (int nextra = 0; nextra < nExtraCellData; nextra++) {
-		double *p = va_arg(args, double *);
+		realptr p = va_arg(args, realptr);
 		fprintf(f, "\nextra_data%.4d 1 %9d double\n", nextra, nElems);
 		for (int i=0; i<nElems; i++)
-			fprintf(f, " %2.16e\n", p[i]);
+			fprintf(f, " %2.16e\n", (realbytes == 4) ? p.s[i] : p.d[i]);
 	}
 
 	fprintf(f, "\nPOINT_DATA %9d\n", nVert);
 	fprintf(f, "\nFIELD ExtraPointData %d\n", nExtraPointData);
 	for (int nextra = 0; nextra < nExtraPointData; nextra++) {
-		double *p = va_arg(args, double *);
+		realptr p = va_arg(args, realptr);
 		fprintf(f, "\nextra_data%.4d 1 %9d double\n", nextra, nVert);
 		for (int i=0; i<nVert; i++)
-			fprintf(f, " %2.16e\n", p[i]);
+			fprintf(f, " %2.16e\n", (realbytes == 4) ? p.s[i] : p.d[i]);
 	}
 	fclose(f);
 }

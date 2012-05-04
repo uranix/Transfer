@@ -19,7 +19,7 @@ OBJS=main.o LebedevQuad.o \
 	 HemiQuad.o Spherical.o AngularData.o MeshData.o Config.o \
 	 CudaContext.o DeviceAngularData.o DeviceMeshData.o
 
-CUBIN=kernels.cubin
+CUBIN=kernels.sm_12.cubin kernels.sm_13.cubin kernels.sm_20.cubin
 
 TARGET=main
 
@@ -28,8 +28,14 @@ TARGET=main
 
 all: main $(CUBIN)
 
-%.cubin : %.cu
-	$(NVCC) $(NVCCFLAGS) -Xptxas "$(PTXFLAGS)" -o $@ -cubin $<
+%.sm_12.cubin : %.cu
+	$(NVCC) $(NVCCFLAGS) -Xptxas "$(PTXFLAGS)" -gencode=arch=compute_12,code=sm_12 -cubin $< -o $@
+
+%.sm_13.cubin : %.cu
+	$(NVCC) $(NVCCFLAGS) -Xptxas "$(PTXFLAGS)" -gencode=arch=compute_13,code=sm_13 -cubin $< -o $@
+
+%.sm_20.cubin : %.cu
+	$(NVCC) $(NVCCFLAGS) -Xptxas "$(PTXFLAGS)" -gencode=arch=compute_20,code=sm_20 -cubin $< -o $@
 
 meshProcessor/libmesh3d.a: meshProcessor/*.h meshProcessor/*.h
 	$(MAKE) -C meshProcessor all
