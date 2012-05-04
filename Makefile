@@ -16,7 +16,7 @@ LIBS= -L/usr/local/cuda/lib/ -LmeshProcessor -lmesh3d -lcuda
 OBJS=main.o CudaContext.o DeviceAngularData.o DeviceMeshData.o LebedevQuad.o \
 	 HemiQuad.o Spherical.o AngularData.o MeshData.o Config.o
 
-CUBIN=kernel.cubin
+CUBIN=kernels.cubin
 
 TARGET=main
 
