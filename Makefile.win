@@ -1,24 +1,21 @@
-CUDA_INSTALL_PATH=/usr/local/cuda
-NVCC=$(CUDA_INSTALL_PATH)/bin/nvcc
-NVCCFLAGS= -I. -O2 \
-		   -m32 \
-		   -arch sm_13 \
-		   --keep --keep-dir cufiles
-
-#CFLAGS=-m32 -O2 -Wall
-#CXXFLAGS=$(CFLAGS)
-
-CFLAGS=-m32 -O0 -g -Wall -ImeshProcessor
+CLFLAGS= -O2 -W3 -ImeshProcessor
+CFLAGS= -O2 -Wall -ImeshProcessor
 CXXFLAGS=$(CFLAGS)
 
-LDFLAGS=-m32
+CUDA_INSTALL_PATH=$(CUDA_PATH)
+NVCC="$(CUDA_INSTALL_PATH)bin\nvcc.exe"
+NVCCFLAGS= -I. -O2 -Xcompiler "$(CLFLAGS)"\
+		   -m32 \
+		   -arch sm_12 \
+		   --keep --keep-dir cufiles
+
+LDFLAGS=-m32 -g
 PTXFLAGS= -v -O2
-LIBS= -LmeshProcessor -lmesh3d
+LIBS= -L"$(CUDA_INSTALL_PATH)lib\Win32" -LmeshProcessor -lmesh3d -lcudart
 
-#OBJS=main.o wrapper.o DeviceAngularData.o DeviceMeshData.o LebedevQuad.o \
-#	 HemiQuad.o Spherical.o AngularData.o MeshData.o
-
-OBJS=main.o LebedevQuad.o HemiQuad.o Spherical.o AngularData.o MeshData.o Config.o
+OBJS=main.o LebedevQuad.o \
+	 HemiQuad.o Spherical.o AngularData.o MeshData.o Config.o \
+	 wrapper.lib DeviceAngularData.lib DeviceMeshData.lib
 
 TARGET=main
 
@@ -28,7 +25,12 @@ TARGET=main
 all: main
 
 %.o : %.cu
-	$(NVCC) $(NVCCFLAGS) -Xptxas "$(PTXFLAGS)" -c $<
+	$(NVCC) $(NVCCFLAGS) -Xptxas "$(PTXFLAGS)" -o $@ -c $<
+
+%.lib : %.cu
+	$(NVCC) $(NVCCFLAGS) -Xptxas "$(PTXFLAGS)" -o $@ -lib $<
+
+wrapper.o:: kernels.cu
 
 meshProcessor/libmesh3d.a: meshProcessor/*.h meshProcessor/*.h
 	$(MAKE) -C meshProcessor all

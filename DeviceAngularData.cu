@@ -12,36 +12,6 @@
 } while (0)
 #endif
 
-__global__ void copy_omega(REAL *dst, REAL *src, idx slm) {
-	idx aslm = blockDim.x;
-	#pragma unroll
-	for (int s = 0; s < 3; s++) {
-		if ((threadIdx.x < slm) && (blockIdx.x < slm))
-			dst[s*aslm*aslm + aslm * blockIdx.x + threadIdx.x] = src[s*slm*slm + slm * blockIdx.x + threadIdx.x];
-		else
-			dst[s*aslm*aslm + aslm * blockIdx.x + threadIdx.x] = 0;
-	}
-}
-
-__global__ void copy_omega_pos(idx *dst, idx *src, idx slm) {
-	idx aslm = blockDim.x;
-	#pragma unroll
-	for (int s = 0; s < 3; s++) {
-		if ((threadIdx.x < slm) && (blockIdx.x < slm))
-			dst[s*aslm*aslm + aslm * blockIdx.x + threadIdx.x] = src[s*slm*slm + slm * blockIdx.x + threadIdx.x];
-		else
-			dst[s*aslm*aslm + aslm * blockIdx.x + threadIdx.x] = 0;
-	}
-}
-
-__global__ void copy_On(REAL *dst, REAL *src, idx slm) {
-	idx aslm = blockDim.x;
-	if ((threadIdx.x < slm) && (blockIdx.x < slm))
-		dst[aslm * blockIdx.x + threadIdx.x] = src[slm * blockIdx.x + threadIdx.x];
-	else
-		dst[aslm * blockIdx.x + threadIdx.x] = 0;
-}
-
 DeviceAngularData::DeviceAngularData(const AngularData &host) {
 	slm = host.slm;
 	aslm = align_power(host.slm, COALESCED_NUM(REAL));
@@ -58,26 +28,42 @@ DeviceAngularData::DeviceAngularData(const AngularData &host) {
 	printf("\tOy        = %p\n", Oy);
 	printf("\tOz        = %p\n", Oz);
 
-	void *tmp;
 	dim3 block;
-	_(cudaMalloc((void **)&tmp, 3*aslm*aslm*sizeof(REAL)));
+	REAL *omega_aligned = new REAL[3*aslm*aslm];
+	REAL *omega_pos_aligned = new idx[3*aslm*aslm];
+	REAL *Ox_aligned = new idx[aslm*aslm];
+	REAL *Oy_aligned = new idx[aslm*aslm];
+	REAL *Oz_aligned = new idx[aslm*aslm];
 
-	_(cudaMemcpy(tmp, host.omega, 3*slm*slm*sizeof(REAL), cudaMemcpyHostToDevice));
-	copy_omega<<<aslm,aslm>>>(omega, (REAL *)tmp, slm);
-
-	_(cudaMemcpy(tmp, host.omega_pos, 3*slm*slm*sizeof(idx), cudaMemcpyHostToDevice));
-	copy_omega_pos<<<aslm,aslm>>>(omega_pos, (idx *)tmp, slm);
-
-	_(cudaMemcpy(tmp, host.Ox, slm*slm*sizeof(REAL), cudaMemcpyHostToDevice));
-	copy_On<<<aslm,aslm>>>(Ox, (REAL *)tmp, slm);
-
-	_(cudaMemcpy(tmp, host.Oy, slm*slm*sizeof(REAL), cudaMemcpyHostToDevice));
-	copy_On<<<aslm,aslm>>>(Oy, (REAL *)tmp, slm);
-
-	_(cudaMemcpy(tmp, host.Oz, slm*slm*sizeof(REAL), cudaMemcpyHostToDevice));
-	copy_On<<<aslm,aslm>>>(Oz, (REAL *)tmp, slm);
-
-	_(cudaFree(tmp));
+	for (idx i=0; i < aslm; i++)
+		for (idx j=0; j < aslm; j++) 
+			if (i < slm && j < slm) {
+				omega_aligned[0*aslm*aslm + i*aslm + j] = host.omega[0*slm*slm + i*slm + j];
+				omega_aligned[1*aslm*aslm + i*aslm + j] = host.omega[1*slm*slm + i*slm + j];
+				omega_aligned[2*aslm*aslm + i*aslm + j] = host.omega[2*slm*slm + i*slm + j];
+				omega_pos_aligned[0*aslm*aslm + i*aslm + j] = host.omega_pos[0*slm*slm + i*slm + j];
+				omega_pos_aligned[1*aslm*aslm + i*aslm + j] = host.omega_pos[1*slm*slm + i*slm + j];
+				omega_pos_aligned[2*aslm*aslm + i*aslm + j] = host.omega_pos[2*slm*slm + i*slm + j];
+				Ox_aligned[i*aslm + j] = host.Ox[i*slm + j];
+				Oy_aligned[i*aslm + j] = host.Oy[i*slm + j];
+				Oz_aligned[i*aslm + j] = host.Oz[i*slm + j];
+			} else {
+				omega_aligned[0*aslm*aslm + i*aslm + j] = 0;
+				omega_aligned[1*aslm*aslm + i*aslm + j] = 0;
+				omega_aligned[2*aslm*aslm + i*aslm + j] = 0;
+				omega_pos_aligned[0*aslm*aslm + i*aslm + j] = 0;
+				omega_pos_aligned[1*aslm*aslm + i*aslm + j] = 0;
+				omega_pos_aligned[2*aslm*aslm + i*aslm + j] = 0;
+				Ox_aligned[i*aslm + j] = 0;
+				Oy_aligned[i*aslm + j] = 0;
+				Oz_aligned[i*aslm + j] = 0;
+			}
+		
+	_(cudaMemcpy(omega, omega_aligned, 3*aslm*aslm*sizeof(REAL), cudaMemcpyHostToDevice));
+	_(cudaMemcpy(omega_pos, omega_pos_aligned, 3*aslm*aslm*sizeof(idx), cudaMemcpyHostToDevice));
+	_(cudaMemcpy(Ox, Ox_aligned, aslm*aslm*sizeof(REAL), cudaMemcpyHostToDevice));
+	_(cudaMemcpy(Oy, Oy_aligned, aslm*aslm*sizeof(REAL), cudaMemcpyHostToDevice));
+	_(cudaMemcpy(Oz, Oz_aligned, aslm*aslm*sizeof(REAL), cudaMemcpyHostToDevice));
 }
 
 DeviceAngularData::~DeviceAngularData() {

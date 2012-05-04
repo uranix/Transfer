@@ -1,6 +1,8 @@
 #include "MeshData.h"
 #include <stdio.h>
 
+#include "common.cuh"
+
 #ifndef _
 #define _(x) do { \
 	if ((x) != cudaSuccess) { \
@@ -10,7 +12,7 @@
 #endif
 
 DeviceMeshData::DeviceMeshData(const MeshData &host) {
-	int nps = (int)(sqrt(host.nP)+0.5000001);
+	int nps = (int)(sqrt((double)host.nP)+0.5000001);
 	nPlow = align_power(nps, 16);
 	nPhigh = align_power(nps, 16);
 	nP = host.nP;

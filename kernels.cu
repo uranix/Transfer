@@ -12,7 +12,84 @@
 #define __printf(x, ...) printf(x, __VA_ARGS__)
 #endif
 
+__global__ void addProdKern(idx nP, idx aslm, REAL *x, const REAL *y, const REAL wy) {
+	int lm = threadIdx.x;
+	int vertex = blockIdx.x + blockIdx.y * gridDim.x;
+
+	int i = vertex * aslm + lm;
+
+	if (vertex < nP)
+		x[i] += wy * y[i];
+}
+
+__global__ void mulAddKern(idx nP, idx aslm, REAL *x, const REAL wx, const REAL *y) {
+	int lm = threadIdx.x;
+	int vertex = blockIdx.x + blockIdx.y * gridDim.x;
+
+	int i = vertex * aslm + lm;
+
+	if (vertex < nP)
+		x[i] = wx*x[i]+y[i];
+}
+
+__global__ void mulAddProdKern(idx nP, idx aslm, REAL *x, const REAL wx, const REAL *y, const REAL wy) {
+	int lm = threadIdx.x;
+	int vertex = blockIdx.x + blockIdx.y * gridDim.x;
+
+	int i = vertex * aslm + lm;
+
+	if (vertex < nP)
+		x[i] = wx*x[i]+wy*y[i];
+}
+
+/* TODO replace with proper, high performance version */
+__global__ void normKern(idx nP, idx aslm, idx slm, const REAL *x, REAL *res) {
+	__shared__ REAL reduce[ASLM_MAX];
+	idx lm = threadIdx.x;
+
+	reduce[lm] = 0;
+	if (lm < slm) {
+		for (idx i = lm, j = nP*aslm; i < j; i += aslm) {
+			REAL q = x[i];
+			reduce[lm] += q*q;
+		}
+	} 
+	__syncthreads();
+#pragma unroll
+	for (idx s = ASLM_MAX >> 1; s > 0; s>>=1) {
+		if (lm < s)
+			reduce[lm] += reduce[lm + s];
+		__syncthreads();
+	}
+	if (lm == 0)
+		res[0] = reduce[0];
+}
+
+/* TODO replace with proper, high performance version */
+__global__ void dotKern(idx nP, idx aslm, idx slm, const REAL *x, const REAL *y, REAL *res) {
+	__shared__ REAL reduce[ASLM_MAX];
+	idx lm = threadIdx.x;
+
+	reduce[lm] = 0;
+	if (lm < slm) {
+		for (idx i = lm, j = nP*aslm; i < j; i += aslm) {
+			reduce[lm] += x[i]*y[i];
+		}
+	} 
+	__syncthreads();
+#pragma unroll
+	for (idx s = ASLM_MAX >> 1; s > 0; s>>=1) {
+		if (lm < s)
+			reduce[lm] += reduce[lm + s];
+		__syncthreads();
+	}
+	if (lm == 0)
+		res[0] = reduce[0];
+}
+
+
 /*
+   block-wise copy
    sz must be multiple of sizeof(copy_unit);
    dst and src should be aligned of sizeof(copy_unit) boundary
  */
@@ -63,7 +140,7 @@ __global__ void rightHandSide(	DeviceMeshDataRaw md,
 Computes r = (e_i, f) + (1/kappa nabla e_i, 1/kappa nabla f)
 
 	nP						: total vertices number
-	start[nP+1]				: start[i+1] - start[i] = number of tetrahedrons incidental to vertex i
+	start[nP+1]				: start[i+1] - start[i] = number of tetrahedrons having i as vertex
 	idx[start[nP]]			: corresponding tetrahedron idx
 	pos[start[nP]]			: local vertex idx in tetradedron
 	mesh[nT]				: mesh
@@ -185,7 +262,7 @@ __global__ void volumePart(	DeviceMeshDataRaw md,
 WORKS ONLY IF NORMAL IS (+/-1,0,0), (0,+/-1,0) or (0,0,+/-1). Issue #15
 Computes r += int_{dG x 4pi} |Omega n(x)| e_i f d Omega dS
 	nP						: total vertices number
-	start[nP+1]				: start[i+1] - start[i] = number of faces incidental to vertex i
+	start[nP+1]				: start[i+1] - start[i] = number of faces having i as vertex
 	idx[start[nP]]			: corresponding face idx
 	pos[start[nP]]			: local vertex idx in face
 	bnd[nF]					: boundary faces
@@ -203,7 +280,7 @@ Assumed:
 	gridDim.x*gridDim.y = nP
 	gridSize.z = 1
 
-	shmem per block = 32*ASLM_MAX * blockDim.x + ? [__syncthreads()]
+	shmem per block = 32b * ASLM_MAX * blockDim.x + ? [__syncthreads()]
    */
 __global__ void surfacePart( DeviceMeshDataRaw md,
 							 DeviceAngularDataRaw ad,
