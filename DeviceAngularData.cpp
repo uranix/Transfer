@@ -1,25 +1,18 @@
 #include "AngularData.h"
-
+#include "CudaContext.h"
 #include "common.cuh"
 
 #include <stdio.h>
 
-#ifndef _
-#define _(x) do { \
-	if ((x) != cudaSuccess) { \
-	fprintf(stderr, "File %s line %d, %s failed with error `%s'\n", __FILE__, __LINE__, #x, cudaGetErrorString(cudaGetLastError())); \
-	fflush(stderr); } \
-} while (0)
-#endif
-
-DeviceAngularData::DeviceAngularData(const AngularData &host) {
+DeviceAngularData::DeviceAngularData(const CudaContext *_ctx, const AngularData &host) {
+	ctx = _ctx;
 	slm = host.slm;
 	aslm = align_power(host.slm, COALESCED_NUM(REAL));
-	_(cudaMalloc((void **)&omega, 3*aslm*aslm*sizeof(REAL)));
-	_(cudaMalloc((void **)&omega_pos, 3*aslm*aslm*sizeof(idx)));
-	_(cudaMalloc((void **)&Ox, aslm*aslm*sizeof(REAL)));
-	_(cudaMalloc((void **)&Oy, aslm*aslm*sizeof(REAL)));
-	_(cudaMalloc((void **)&Oz, aslm*aslm*sizeof(REAL)));
+	omega = (REAL *)ctx->deviceAlloc(3*aslm*aslm*sizeof(REAL));
+	omega_pos = (idx *)ctx->deviceAlloc(3*aslm*aslm*sizeof(idx));
+	Ox = (REAL *)ctx->deviceAlloc(aslm*aslm*sizeof(REAL));
+	Oy = (REAL *)ctx->deviceAlloc(aslm*aslm*sizeof(REAL));
+	Oz = (REAL *)ctx->deviceAlloc(aslm*aslm*sizeof(REAL));
 
 	printf("DeviceAngularData:\n");
 	printf("\tomega     = %p\n", omega);
@@ -28,12 +21,11 @@ DeviceAngularData::DeviceAngularData(const AngularData &host) {
 	printf("\tOy        = %p\n", Oy);
 	printf("\tOz        = %p\n", Oz);
 
-	dim3 block;
 	REAL *omega_aligned = new REAL[3*aslm*aslm];
 	idx *omega_pos_aligned = new idx[3*aslm*aslm];
-	idx *Ox_aligned = new idx[aslm*aslm];
-	idx *Oy_aligned = new idx[aslm*aslm];
-	idx *Oz_aligned = new idx[aslm*aslm];
+	REAL *Ox_aligned = new REAL[aslm*aslm];
+	REAL *Oy_aligned = new REAL[aslm*aslm];
+	REAL *Oz_aligned = new REAL[aslm*aslm];
 
 	for (idx i=0; i < aslm; i++)
 		for (idx j=0; j < aslm; j++) 
@@ -59,17 +51,23 @@ DeviceAngularData::DeviceAngularData(const AngularData &host) {
 				Oz_aligned[i*aslm + j] = 0;
 			}
 		
-	_(cudaMemcpy(omega, omega_aligned, 3*aslm*aslm*sizeof(REAL), cudaMemcpyHostToDevice));
-	_(cudaMemcpy(omega_pos, omega_pos_aligned, 3*aslm*aslm*sizeof(idx), cudaMemcpyHostToDevice));
-	_(cudaMemcpy(Ox, Ox_aligned, aslm*aslm*sizeof(REAL), cudaMemcpyHostToDevice));
-	_(cudaMemcpy(Oy, Oy_aligned, aslm*aslm*sizeof(REAL), cudaMemcpyHostToDevice));
-	_(cudaMemcpy(Oz, Oz_aligned, aslm*aslm*sizeof(REAL), cudaMemcpyHostToDevice));
+	ctx->copyToDev(omega, omega_aligned, 3*aslm*aslm*sizeof(REAL));
+	ctx->copyToDev(omega_pos, omega_pos_aligned, 3*aslm*aslm*sizeof(idx));
+	ctx->copyToDev(Ox, Ox_aligned, aslm*aslm*sizeof(REAL));
+	ctx->copyToDev(Oy, Oy_aligned, aslm*aslm*sizeof(REAL));
+	ctx->copyToDev(Oz, Oz_aligned, aslm*aslm*sizeof(REAL));
+
+	delete[] omega_aligned;
+	delete[] omega_pos_aligned;
+	delete[] Ox_aligned;
+	delete[] Oy_aligned;
+	delete[] Oz_aligned;
 }
 
 DeviceAngularData::~DeviceAngularData() {
-	_(cudaFree(omega));
-	_(cudaFree(omega_pos));
-	_(cudaFree(Ox));
-	_(cudaFree(Oy));
-	_(cudaFree(Oz));
+	ctx->deviceFree(omega);
+	ctx->deviceFree(omega_pos);
+	ctx->deviceFree(Ox);
+	ctx->deviceFree(Oy);
+	ctx->deviceFree(Oz);
 }

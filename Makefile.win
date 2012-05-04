@@ -1,36 +1,35 @@
+CCBIN="D:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin"
+
 CLFLAGS= -O2 -W3 -ImeshProcessor
-CFLAGS= -O2 -Wall -ImeshProcessor
+CFLAGS= -O2 -Wall -ImeshProcessor -I"$(CUDA_INSTALL_PATH)include\\"
 CXXFLAGS=$(CFLAGS)
 
 CUDA_INSTALL_PATH=$(CUDA_PATH)
 NVCC="$(CUDA_INSTALL_PATH)bin\nvcc.exe"
-NVCCFLAGS= -I. -O2 -Xcompiler "$(CLFLAGS)"\
+NVCCFLAGS= -I. -O2 -ccbin=$(CCBIN) -Xcompiler "$(CLFLAGS)"\
 		   -m32 \
 		   -arch sm_12 \
 		   --keep --keep-dir cufiles
 
 LDFLAGS=-m32 -g
 PTXFLAGS= -v -O2
-LIBS= -L"$(CUDA_INSTALL_PATH)lib\Win32" -LmeshProcessor -lmesh3d -lcudart
+LIBS= -L"$(CUDA_INSTALL_PATH)lib\Win32" -LmeshProcessor -lmesh3d -lcuda
 
 OBJS=main.o LebedevQuad.o \
 	 HemiQuad.o Spherical.o AngularData.o MeshData.o Config.o \
-	 wrapper.lib DeviceAngularData.lib DeviceMeshData.lib
+	 CudaContext.o DeviceAngularData.o DeviceMeshData.o
+
+CUBIN=kernels.cubin
 
 TARGET=main
 
 .PHONY: all clean deepclean
 
 
-all: main
+all: main $(CUBIN)
 
-%.o : %.cu
-	$(NVCC) $(NVCCFLAGS) -Xptxas "$(PTXFLAGS)" -o $@ -c $<
-
-%.lib : %.cu
-	$(NVCC) $(NVCCFLAGS) -Xptxas "$(PTXFLAGS)" -o $@ -lib $<
-
-wrapper.o:: kernels.cu
+%.cubin : %.cu
+	$(NVCC) $(NVCCFLAGS) -Xptxas "$(PTXFLAGS)" -o $@ -cubin $<
 
 meshProcessor/libmesh3d.a: meshProcessor/*.h meshProcessor/*.h
 	$(MAKE) -C meshProcessor all
@@ -40,7 +39,7 @@ main: meshProcessor/libmesh3d.a $(OBJS)
 
 clean: 
 	rm -f cufiles/*
-	rm -f $(TARGET) $(OBJS)
+	rm -f $(TARGET) $(OBJS) $(CUBIN)
 
 deepclean: clean
 	$(MAKE) -C meshProcessor clean

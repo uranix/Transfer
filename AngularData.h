@@ -3,6 +3,8 @@
 
 #include "util.h"
 
+struct CudaContext;
+
 struct AngularData {
 
 	idx slm;
@@ -26,7 +28,8 @@ struct DeviceAngularDataRaw {
 };
 
 struct DeviceAngularData : public DeviceAngularDataRaw {
-	DeviceAngularData(const AngularData &);
+	const CudaContext *ctx;
+	DeviceAngularData(const CudaContext *ctx, const AngularData &);
 	~DeviceAngularData();
 private:
 	DeviceAngularData();

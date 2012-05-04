@@ -1,10 +1,8 @@
-#CFLAGS=-m32 -O2 -Wall
-#CXXFLAGS=$(CFLAGS)
+CUDA_INSTALL_PATH=/usr/local/cuda
 
-CFLAGS=-m32 -O0 -g -Wall -ImeshProcessor
+CFLAGS=-m32 -O0 -g -Wall -ImeshProcessor -I"$(CUDA_INSTALL_PATH)/include"
 CXXFLAGS=$(CFLAGS)
 
-CUDA_INSTALL_PATH=/usr/local/cuda
 NVCC=$(CUDA_INSTALL_PATH)/bin/nvcc
 NVCCFLAGS= -I. -O2 -Xcompiler "$(CFLAGS)"\
 		   -m32 \
@@ -13,20 +11,22 @@ NVCCFLAGS= -I. -O2 -Xcompiler "$(CFLAGS)"\
 
 LDFLAGS=-m32 -g
 PTXFLAGS= -v -O2
-LIBS= -L/usr/local/cuda/lib/ -LmeshProcessor -lmesh3d -lcudart
+LIBS= -L/usr/local/cuda/lib/ -LmeshProcessor -lmesh3d -lcuda
 
-OBJS=main.o wrapper.o DeviceAngularData.o DeviceMeshData.o LebedevQuad.o \
+OBJS=main.o CudaContext.o DeviceAngularData.o DeviceMeshData.o LebedevQuad.o \
 	 HemiQuad.o Spherical.o AngularData.o MeshData.o Config.o
+
+CUBIN=kernel.cubin
 
 TARGET=main
 
 .PHONY: all clean deepclean
 
 
-all: main
+all: main $(CUBIN)
 
-%.o : %.cu
-	$(NVCC) $(NVCCFLAGS) -Xptxas "$(PTXFLAGS)" -c $<
+%.cubin : %.cu
+	$(NVCC) $(NVCCFLAGS) -Xptxas "$(PTXFLAGS)" -cubin $<
 
 wrapper.o:: kernels.cu
 

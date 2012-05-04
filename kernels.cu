@@ -5,11 +5,8 @@
 
 #include "common.cuh"
 
-#include <stdio.h>
-#ifdef NDEBUG
-#define __printf(x, ...) do {} while (0)
-#else 
-#define __printf(x, ...) printf(x, __VA_ARGS__)
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 __global__ void addProdKern(idx nP, idx aslm, REAL *x, const REAL *y, const REAL wy) {
@@ -58,8 +55,8 @@ __global__ void normKern(idx nP, idx aslm, idx slm, const REAL *x, REAL *res) {
 	} 
 	__syncthreads();
 #define ITER(s) \
-	if (lm < (s)) \
-		reduce[lm] += reduce[lm + (s)]; \
+	if (lm < s) \
+		reduce[lm] += reduce[lm + s]; \
 	__syncthreads();
 /*	for (idx s = ASLM_MAX >> 1; s > 0; s>>=1) {
 		if (lm < s)
@@ -90,22 +87,32 @@ __global__ void dotKern(idx nP, idx aslm, idx slm, const REAL *x, const REAL *y,
 		}
 	} 
 	__syncthreads();
+	/*
 #pragma unroll
 	for (idx s = ASLM_MAX >> 1; s > 0; s>>=1) {
 		if (lm < s)
 			reduce[lm] += reduce[lm + s];
 		__syncthreads();
-	}
+	}*/
+	ITER(128); 
+	ITER(64);
+	ITER(32);
+	ITER(16);
+	ITER(8);
+	ITER(4);
+	ITER(2);
+	ITER(1);
 	if (lm == 0)
 		res[0] = reduce[0];
 }
 
-
+#undef ITER
 /*
    block-wise copy
    sz must be multiple of sizeof(copy_unit);
    dst and src should be aligned of sizeof(copy_unit) boundary
  */
+typedef uint32_t copy_unit;
 __device__ void dmemcpy(void *_dst, const void *_src, size_t sz) {
 	copy_unit *dst = (copy_unit *)_dst;
 	copy_unit *src = (copy_unit *)_src;
@@ -350,3 +357,7 @@ __global__ void surfacePart( DeviceMeshDataRaw md,
 	}
 	r[aslm*vertex + lm] += sum;
 }
+
+#ifdef __cplusplus
+}
+#endif

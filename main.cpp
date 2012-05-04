@@ -19,20 +19,16 @@ int main(int argc, char **argv) {
 	AngularData ad(cfg.getMaxK()); 
 	MeshData md(cfg);
 
-	CudaContext::setDevice(cfg.getDevice());
-	DeviceAngularData dad(ad);
-	DeviceMeshData dmd(md);
+	CudaContext *ctx = new CudaContext (cfg.getDevice(), md, ad);
 
-	CudaContext *ctx = new CudaContext (&dmd, &dad);
+	REAL *f = ctx->allocVector();
+	REAL *b = ctx->allocVector();
+	REAL *p = ctx->allocVector();
+	REAL *Ap= ctx->allocVector();
+	REAL *z = ctx->allocVector();
+	REAL *r = ctx->allocVector();
 
-	REAL *f = (REAL *)ctx->deviceAlloc(dad.aslm * dmd.nP * sizeof(REAL));
-	REAL *b = (REAL *)ctx->deviceAlloc(dad.aslm * dmd.nP * sizeof(REAL));
-	REAL *p = (REAL *)ctx->deviceAlloc(dad.aslm * dmd.nP * sizeof(REAL));
-	REAL *Ap = (REAL *)ctx->deviceAlloc(dad.aslm * dmd.nP * sizeof(REAL));
-	REAL *z = (REAL *)ctx->deviceAlloc(dad.aslm * dmd.nP * sizeof(REAL));
-	REAL *r = (REAL *)ctx->deviceAlloc(dad.aslm * dmd.nP * sizeof(REAL));
-
-	REAL *_f = new REAL[dad.aslm * dmd.nP];
+	REAL *_f = new REAL[ctx->angdata->aslm * ctx->meshdata->nP];
 
 #if 0
 	REAL *_r = new REAL[dad.aslm * dmd.nP];
@@ -78,9 +74,9 @@ int main(int argc, char **argv) {
 #endif
 	/*--------*/
 
-	for (idx i = 0; i < dad.aslm * dmd.nP; i++)
+	for (idx i = 0; i < ctx->N(); i++)
 		_f[i] = 0;
-	ctx->copyToDev(f, _f, dad.aslm * dmd.nP * sizeof(REAL));
+	ctx->copyToDev(f, _f, ctx->N() * sizeof(REAL));
 	ctx->computeRhs(b);
 	ctx->computeLhs(f, Ap);
 	ctx->mulAdd(r, 0, b);
@@ -108,14 +104,16 @@ int main(int argc, char **argv) {
 
 	/*--------*/
 
-	ctx->copyToHost(_f, f, dad.aslm * dmd.nP * sizeof(REAL));
-	REAL *u[dad.slm];
-	for (idx k=0; k<dad.slm; k++) {
-		u[k] = new REAL[md.nP];
-		for (idx i = 0; i < md.nP; i++)
-			u[k][i] = _f[i*dad.aslm+k];
+	ctx->copyToHost(_f, f, ctx->N() * sizeof(REAL));
+	REAL *u[ad.slm];
+	for (idx k=0; k < ad.slm; k++) {
+		u[k] = new REAL[ctx->meshdata->nP];
+		for (idx i = 0; i < ctx->meshdata->nP; i++)
+			u[k][i] = _f[i*ctx->angdata->aslm + k];
 	}
 	md._m->saveVtk("solution.vtk", 0, 1, u[0]);
+
+	delete ctx;
 
 	return 0;
 }

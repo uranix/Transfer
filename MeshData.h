@@ -6,6 +6,7 @@
 #include "face.h"
 #include "Config.h"
 
+struct CudaContext;
 class Mesh;
 
 struct MeshData {
@@ -42,7 +43,8 @@ struct DeviceMeshDataRaw {
 };
 
 struct DeviceMeshData : public DeviceMeshDataRaw { 
-	DeviceMeshData(const MeshData &);
+	const CudaContext *ctx;
+	DeviceMeshData(const CudaContext *ctx, const MeshData &);
 	~DeviceMeshData();
 private:
 	DeviceMeshData();
