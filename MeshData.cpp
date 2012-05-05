@@ -97,6 +97,23 @@ MeshData::MeshData(const Config &cfg) {
 	printf("Mesh has %d points, %d tetrahedra and %d boundary faces\n", _m->nVert, _m->nElems, _m->nBndFaces);
 }
 
+void MeshData::ComputeFlux(const REAL *U, REAL *Wx, REAL *Wy, REAL *Wz) {
+	// W = -4pi/3/kappa grad U
+	REAL mul = (REAL)4.18879020478639098461685784437;
+	for (idx i = 0; i < nT; i++) {
+		tetrahedron *t = mesh + i;
+		REAL wx = 0, wy = 0, wz = 0;
+		for (int j = 0; j < 4; j++) {
+			wx += U[t->p[j]] * t->s[j][0];
+			wy += U[t->p[j]] * t->s[j][1];
+			wz += U[t->p[j]] * t->s[j][2];
+		}
+		Wx[i] = mul * wx / t->kappa_volume;
+		Wy[i] = mul * wy / t->kappa_volume;
+		Wz[i] = mul * wz / t->kappa_volume;
+	}
+}
+
 MeshData::~MeshData() {
 	delete _m;
 	delete[] tetstart;

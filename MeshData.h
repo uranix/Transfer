@@ -22,6 +22,7 @@ struct MeshData {
 	idx *facepos;
 	face *bnd;
 	MeshData(const Config &);
+	void ComputeFlux(const REAL *U, REAL *Wx, REAL *Wy, REAL *Wz);
 	~MeshData();
 
 	Mesh *_m;

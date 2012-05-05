@@ -30,49 +30,47 @@ int main(int argc, char **argv) {
 
 	REAL *_f = new REAL[ctx->angdata->aslm * ctx->meshdata->nP];
 
-#if 0
-	REAL *_r = new REAL[dad.aslm * dmd.nP];
-	REAL *_Af = new REAL[dad.aslm * dmd.nP];
-	REAL *_b = new REAL[dad.aslm * dmd.nP];
-	idx N = dad.aslm * dmd.nP;
+	idx N = ctx->N();
 
-	double *Z = new double[N*N];
+	if (cfg.doDump()) {
+		REAL *_Af = new REAL[N];
+		REAL * _b = new REAL[N];
 
-	FILE *file = fopen("matrix.txt", "w");
-	ctx->computeRhs(b);
-	ctx->copyToHost(_b, b, dad.aslm * dmd.nP * sizeof(REAL));
+		double *Z = new double[N*N];
 
-	for (int k = 0; k < dad.aslm * dmd.nP; k++) {
+		FILE *file = fopen("slae.dat", "w");
+		ctx->computeRhs(b);
+		ctx->copyToHost(_b, b, N * sizeof(REAL));
 
-		for (int i = 0; i < dad.aslm * dmd.nP; i++)
-			_f[i] = i==k;
-		ctx->copyToDev(f, _f, dad.aslm * dmd.nP * sizeof(REAL));
-		ctx->computeLhs(f, Ap);
-		ctx->copyToHost(_Af, Ap, dad.aslm * dmd.nP * sizeof(REAL));
-		for (int i = 0; i < dad.aslm * dmd.nP; i++)
-			Z[k*N+i] = _Af[i];
-		int j = k % dad.aslm;
-		if (j < dad.slm) {
-			for (int i = 0; i < dmd.nP; i++) 
-				for (j = 0; j < dad.slm; j++) 
-			{
-				fprintf(file, "% 2.10e ", _Af[i*dad.aslm+j]);
+		for (idx k = 0; k < N; k++) {
+			idx j = k % ctx->angdata->aslm;
+			if (j >= ad.slm)
+				continue;
+			for (idx i = 0; i < N; i++)
+				_f[i] = i==k;
+			ctx->copyToDev(f, _f, N * sizeof(REAL));
+			ctx->computeLhs(f, Ap);
+			ctx->copyToHost(_Af, Ap, N * sizeof(REAL));
+			for (idx i = 0; i < N; i++) {
+				Z[k * N + i] = _Af[i];
+				for (idx i = 0; i < md.nP; i++) 
+					for (idx jj = 0; jj < ad.slm; jj++) 
+						fprintf(file, "% 2.10e ", _Af[i*ctx->angdata->aslm+jj]);
+				fprintf(file, "% 2.10e ", _b[k]);
+				fprintf(file, "\n");
 			}
-			fprintf(file, "% 2.10e ", _b[k]);
-			fprintf(file, "\n");
 		}
+		fclose(file);
+		printf("System dumped\n");
+	/* Symmetry check */
+		for (idx i=0; i<N; i++)
+			for (idx j=0; j<N; j++) {
+				if (fabs(Z[N*i+j]-Z[N*j+i]) > 1e-10)
+					printf("Z[%d,%d] < %2.2e > Z[%d,%d]\n", i, j, fabs(Z[N*i+j]-Z[N*j+i]), j, i);
+			}
 	}
-	fclose(file);
-	printf("Matrix dumped\n");
 
-	for (int i=0; i<N; i++)
-		for (int j=0; j<N; j++) {
-			if (fabs(Z[N*i+j]-Z[N*j+i]) > 1e-10)
-				printf("Z[%d,%d] < %2.2e > Z[%d,%d]\n", i, j, fabs(Z[N*i+j]-Z[N*j+i]), j, i);
-		}
-	
-#endif
-	/*--------*/
+	/* ----- cgs ----- */
 
 	for (idx i = 0; i < ctx->N(); i++)
 		_f[i] = 0;
@@ -102,16 +100,23 @@ int main(int argc, char **argv) {
 		k++;
 	}
 
-	/*--------*/
+	/*------ cgs end -----*/
 
 	ctx->copyToHost(_f, f, ctx->N() * sizeof(REAL));
 	REAL *u[ad.slm];
+	REAL *Wx, *Wy, *Wz;
 	for (idx k=0; k < ad.slm; k++) {
-		u[k] = new REAL[ctx->meshdata->nP];
-		for (idx i = 0; i < ctx->meshdata->nP; i++)
+		u[k] = new REAL[md.nP];
+		for (idx i = 0; i < md.nP; i++)
 			u[k][i] = _f[i*ctx->angdata->aslm + k];
 	}
-	md._m->saveVtk("solution.vtk", sizeof(REAL), 0, 1, u[0]);
+	Wx = new REAL[md.nT];
+	Wy = new REAL[md.nT];
+	Wz = new REAL[md.nT];
+
+	md.ComputeFlux(u[0], Wx, Wy, Wz);
+
+	md._m->saveVtk(cfg.getOutFilename(), sizeof(REAL), 3, 1, Wx, Wy, Wz, u[0]);
 
 	delete ctx;
 

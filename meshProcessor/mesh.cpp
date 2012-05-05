@@ -109,20 +109,43 @@ out:
 	list_deallocate(vert2face);
 }
 
+enum State {
+	ST_NORM,
+	ST_SURF_INIT,
+	ST_SURF_DATA,
+	ST_VOL_INIT,
+	ST_VOL_DATA,
+	ST_PTS_INIT,
+	ST_PTS_DATA,
+	ST_CURVE_INIT,
+	ST_CURVE_DATA,
+	ST_STOP,
+}; 
+
+const char *getStateString(State st) {
+#define state_case(x) case x: return #x
+	switch (st) {
+		state_case(ST_NORM);
+		state_case(ST_SURF_INIT);
+		state_case(ST_SURF_DATA);
+		state_case(ST_VOL_INIT);
+		state_case(ST_VOL_DATA);
+		state_case(ST_PTS_INIT);
+		state_case(ST_PTS_DATA);
+		state_case(ST_CURVE_INIT);
+		state_case(ST_CURVE_DATA);
+		state_case(ST_STOP);
+		default: 
+			return "(error state)";
+	}
+#undef state_case
+}
+
 Mesh::Mesh(const char *fn) {
-	enum State {
-		ST_NORM,
-		ST_SURF_INIT,
-		ST_SURF_DATA,
-		ST_VOL_INIT,
-		ST_VOL_DATA,
-		ST_PTS_INIT,
-		ST_PTS_DATA,
-		ST_CURVE_INIT,
-		ST_CURVE_DATA,
-		ST_STOP,
-	} state = ST_NORM;
 	int i = 0, cnt = 0;
+	State state = ST_NORM;
+
+	printf("Reading mesh from `%s'\n", fn);
 
 	FILE *f = fopen(fn, "r");
 	if (!f) {
@@ -136,7 +159,7 @@ Mesh::Mesh(const char *fn) {
 	int *bnd = 0, *tet = 0, *bndmat = 0, *tetmat = 0;
 
 	while (fgets(buf, 1024, f)) {
-		/* printf("[%.2d] %s", state, buf); */
+		printf("[%20s] %s", getStateString(state), buf); 
 		if (buf[0]=='#')
 			continue;
 		if (state == ST_NORM) {
@@ -239,6 +262,8 @@ Mesh::Mesh(const char *fn) {
 		fromVol(nV, nBx, nT, vert, bnd, tet, bndmat, tetmat);
 	}
 	else {
+		fprintf(stderr, "Parse vol file failed: state = `%s' at the end\n",
+				getStateString(state));
 		throw 0;
 		/* Set Mesh object to valid state so ~Mesh() could safely destroy it */
 	}

@@ -5,9 +5,11 @@ class Config {
 	int nreg;
 	int maxk;
 	int dev;
+	int dump;
 	double *kappa;
 	double *Ip;
 	char meshfn[1024];
+	char outfn[1024];
 public:	
 	explicit Config(const char *cfgfile);
 	~Config() {
@@ -23,11 +25,17 @@ public:
 	const char *getMeshFilename() const {
 		return meshfn;
 	}
+	const char *getOutFilename() const {
+		return outfn;
+	}
 	int getMaxK() const {
 		return maxk;
 	}
 	int getDevice() const {
 		return dev;
+	}
+	bool doDump() const {
+		return dump != 0;
 	}
 };
 
