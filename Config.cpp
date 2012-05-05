@@ -61,7 +61,7 @@ Config::Config(const char *cfgfile) {
 			if (rid >= 0) 
 				die("outfile parameter in section");
 			buf[strlen(buf)-1] = 0;
-			strncpy(meshfn, buf + 10, 1023);
+			strncpy(outfn, buf + 10, 1023);
 			outfn[1023] = 0;
 			continue;
 		}
@@ -98,6 +98,22 @@ Config::Config(const char *cfgfile) {
 	}
 
 	fclose(f);
+	printf("Config parameters:\n");
+	printf("\tnregions = %d\n", nreg);
+	printf("\tangorder = %d\n", maxk);
+	printf("\tdevice = %d\n", dev);
+	printf("\tdump = %s\n", dump?"true":"false");
+	printf("\tkappa = { ");
+	for (int i = 1; i < nreg; i++)
+		printf("%2.6e, ", kappa[i]);
+	printf("%2.6e}\n", kappa[nreg]);
+	printf("\tIp = { ");
+	for (int i = 1; i < nreg; i++)
+		printf("%2.6e, ", Ip[i]);
+	printf("%2.6e}\n", Ip[nreg]);
+	printf("\tMesh file : %s\n", meshfn);
+	printf("\tSolution file : %s\n", outfn);
+
 }
 
 #undef die

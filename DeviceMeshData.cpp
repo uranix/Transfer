@@ -12,14 +12,17 @@ DeviceMeshData::DeviceMeshData(const CudaContext *_ctx, const MeshData &host) {
 	nPhigh = align_power(nps, 16);
 	nP = host.nP;
 
+	idx tetcnt = host.tetstart[nP]; 
+	idx facecnt = host.facestart[nP]; 
+
 	tetstart	= (idx *)ctx->deviceAlloc((nP+1)*sizeof(idx));
-	tetidx		= (idx *)ctx->deviceAlloc(host.tetstart[host.nP]*sizeof(idx));
-	tetpos		= (idx *)ctx->deviceAlloc(host.tetstart[host.nP]*sizeof(idx));
+	tetidx		= (idx *)ctx->deviceAlloc(tetcnt*sizeof(idx));
+	tetpos		= (idx *)ctx->deviceAlloc(tetcnt*sizeof(idx));
 	mesh		= (tetrahedron *)ctx->deviceAlloc(host.nT*sizeof(tetrahedron));
 
 	facestart	= (idx *)ctx->deviceAlloc((nP+1)*sizeof(idx));
-	faceidx		= (idx *)ctx->deviceAlloc(host.facestart[host.nP]*sizeof(idx));
-	facepos		= (idx *)ctx->deviceAlloc(host.facestart[host.nP]*sizeof(idx));
+	faceidx		= (idx *)ctx->deviceAlloc(facecnt*sizeof(idx));
+	facepos		= (idx *)ctx->deviceAlloc(facecnt*sizeof(idx));
 	bnd			= (face *)ctx->deviceAlloc(host.nF*sizeof(face));
 
 	printf("DeviceMeshData:\n");
@@ -31,15 +34,16 @@ DeviceMeshData::DeviceMeshData(const CudaContext *_ctx, const MeshData &host) {
 	printf("\tfacestart = %p\n",facestart);
 	printf("\tfaceidx   = %p\n",faceidx);
 	printf("\tfacepos   = %p\n",facepos);
+	printf("\tmem used = %2.6f MB\n", -1.);
 
-	ctx->copyToDev(tetstart, host.tetstart, (host.nP+1)*sizeof(idx));
-	ctx->copyToDev(tetidx, host.tetidx, host.tetstart[host.nP]*sizeof(idx));
-	ctx->copyToDev(tetpos, host.tetpos, host.tetstart[host.nP]*sizeof(idx));
+	ctx->copyToDev(tetstart, host.tetstart, (nP+1)*sizeof(idx));
+	ctx->copyToDev(tetidx, host.tetidx, tetcnt*sizeof(idx));
+	ctx->copyToDev(tetpos, host.tetpos, tetcnt*sizeof(idx));
 	ctx->copyToDev(mesh, host.mesh, host.nT*sizeof(tetrahedron));
 
-	ctx->copyToDev(facestart, host.facestart, (host.nP+1)*sizeof(idx));
-	ctx->copyToDev(faceidx, host.faceidx, host.facestart[host.nP]*sizeof(idx));
-	ctx->copyToDev(facepos, host.facepos, host.facestart[host.nP]*sizeof(idx));
+	ctx->copyToDev(facestart, host.facestart, (nP+1)*sizeof(idx));
+	ctx->copyToDev(faceidx, host.faceidx, facecnt*sizeof(idx));
+	ctx->copyToDev(facepos, host.facepos, facecnt*sizeof(idx));
 	ctx->copyToDev(bnd, host.bnd, host.nF*sizeof(face));
 }
 

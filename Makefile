@@ -32,12 +32,15 @@ OBJS=main.o CudaContext.o DeviceAngularData.o DeviceMeshData.o LebedevQuad.o \
 CUBIN=kernels.sm_12.cubin kernels.sm_13.cubin kernels.sm_20.cubin
 
 
-.PHONY: all clean deepclean cubin
+.PHONY: all clean deepclean cubin deps
 
 
-all: $(TARGET) 
+all: $(TARGET) cubin deps
 
 cubin: $(CUBIN)
+
+deps: 
+	$(MAKE) -C meshProcessor all
 
 %.sm_12.cubin : %.cu
 	$(NVCC) $(NVCCFLAGS) -Xptxas "$(PTXFLAGS)" -gencode=arch=compute_12,code=sm_12 -cubin $< -o $@
@@ -49,9 +52,7 @@ cubin: $(CUBIN)
 	$(NVCC) $(NVCCFLAGS) -Xptxas "$(PTXFLAGS)" -gencode=arch=compute_20,code=sm_20 -cubin $< -o $@
 
 $(TARGET): $(OBJS)
-	$(MAKE) cubin
-	$(MAKE) -C meshProcessor all
-	g++ $(LDFLAGS) -o $@ $^ $(LIBS)
+	g++ $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
 
 clean: 
 	rm -f cufiles/*

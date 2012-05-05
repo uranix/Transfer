@@ -20,6 +20,8 @@ DeviceAngularData::DeviceAngularData(const CudaContext *_ctx, const AngularData 
 	printf("\tOx        = %p\n", Ox);
 	printf("\tOy        = %p\n", Oy);
 	printf("\tOz        = %p\n", Oz);
+	printf("\tmem used = %2.6f MB\n", 1e-6 * (6*sizeof(REAL) + 3*sizeof(idx)) * aslm * aslm);
+	printf("\tslm = %d, aslm = %d\n", slm, aslm);
 
 	REAL *omega_aligned = new REAL[3*aslm*aslm];
 	idx *omega_pos_aligned = new idx[3*aslm*aslm];

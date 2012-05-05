@@ -159,7 +159,7 @@ Mesh::Mesh(const char *fn) {
 	int *bnd = 0, *tet = 0, *bndmat = 0, *tetmat = 0;
 
 	while (fgets(buf, 1024, f)) {
-		printf("[%20s] %s", getStateString(state), buf); 
+		/* printf("[%.20s] %s", getStateString(state), buf); */
 		if (buf[0]=='#')
 			continue;
 		if (state == ST_NORM) {

@@ -10,16 +10,44 @@
 #include "CudaContext.h"
 #include "Config.h"
 
+REAL uround() {
+	REAL x = 1.0;
+	while ((REAL)1.0 + x > 1.0)
+		x = 0.5 * x;
+	printf("uround = %2.10e\n", x);
+	return x;
+}
+
+void pbar(const char *msg, double val) {
+	static double last;
+	int width = 100;
+	double delta = 1.0 / (double)width;
+	if (val > last + delta || val < 1e-12 || val > 1 - 1e-12) {
+		int ticks = (double)width * val + 0.4999999;
+		printf("\r%s: %6.2f%% [", msg, 100. * val);
+		for (int i = 0; i < ticks; i++)
+			printf("#");
+		for (int i = ticks; i < width; i++)
+			printf(" ");
+		printf("]");
+		last = val;
+	}
+	if (val > 1 - 1e-12)
+		printf("\n");
+}
+
 int main(int argc, char **argv) {
 	if (argc != 2) {
 		fprintf(stderr, "USAGE: %s <config-file>\n", argv[0]);
 		return 1;
 	}
 	Config cfg(argv[1]);
+	REAL eps = uround();
 	AngularData ad(cfg.getMaxK()); 
 	MeshData md(cfg);
 
 	CudaContext *ctx = new CudaContext (cfg.getDevice(), md, ad);
+
 
 	REAL *f = ctx->allocVector();
 	REAL *b = ctx->allocVector();
@@ -42,8 +70,13 @@ int main(int argc, char **argv) {
 		ctx->computeRhs(b);
 		ctx->copyToHost(_b, b, N * sizeof(REAL));
 
+		double q = 1.0 / (N-1), qq = 0;
+
+		printf("N = %d\n", N);
+		pbar("Matrix dump", 0);
 		for (idx k = 0; k < N; k++) {
 			idx j = k % ctx->angdata->aslm;
+			pbar("Matrix dump", qq += q);
 			if (j >= ad.slm)
 				continue;
 			for (idx i = 0; i < N; i++)
@@ -51,22 +84,23 @@ int main(int argc, char **argv) {
 			ctx->copyToDev(f, _f, N * sizeof(REAL));
 			ctx->computeLhs(f, Ap);
 			ctx->copyToHost(_Af, Ap, N * sizeof(REAL));
-			for (idx i = 0; i < N; i++) {
+			for (idx i = 0; i < N; i++) 
 				Z[k * N + i] = _Af[i];
-				for (idx i = 0; i < md.nP; i++) 
-					for (idx jj = 0; jj < ad.slm; jj++) 
-						fprintf(file, "% 2.10e ", _Af[i*ctx->angdata->aslm+jj]);
-				fprintf(file, "% 2.10e ", _b[k]);
-				fprintf(file, "\n");
-			}
+			for (idx i = 0; i < md.nP; i++) 
+				for (idx jj = 0; jj < ad.slm; jj++) 
+					fprintf(file, "% 2.10e ", _Af[i*ctx->angdata->aslm+jj]);
+			fprintf(file, "% 2.10e ", _b[k]);
+			fprintf(file, "\n");
 		}
 		fclose(file);
 		printf("System dumped\n");
 	/* Symmetry check */
 		for (idx i=0; i<N; i++)
 			for (idx j=0; j<N; j++) {
-				if (fabs(Z[N*i+j]-Z[N*j+i]) > 1e-10)
-					printf("Z[%d,%d] < %2.2e > Z[%d,%d]\n", i, j, fabs(Z[N*i+j]-Z[N*j+i]), j, i);
+				REAL diff =	fabs(Z[N*i+j]-Z[N*j+i]);
+				REAL allow = eps * (fabs(Z[N*i+j]) + fabs(Z[N*j+i]));
+				if ( diff > 100 * allow )
+					printf("Z[%d,%d] = %2.10e < %2.2e (%2.2f x uround) > Z[%d,%d] = %2.10e \n", i, j, Z[i*N+j], diff, diff/allow, j, i, Z[j*N+i]);
 			}
 	}
 
