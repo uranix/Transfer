@@ -89,8 +89,8 @@ int main(int argc, char **argv) {
 				Z[k * N + i] = _Af[i];
 			for (idx i = 0; i < md.nP; i++) 
 				for (idx jj = 0; jj < ad.slm; jj++) 
-					fprintf(file, "% 2.10e ", _Af[i*ctx->angdata->aslm+jj]);
-			fprintf(file, "% 2.10e ", _b[k]);
+					fprintf(file, "% 2.14g ", _Af[i*ctx->angdata->aslm+jj]);
+			fprintf(file, "% 2.14g ", _b[k]);
 			fprintf(file, "\n");
 		}
 		fclose(file);
