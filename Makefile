@@ -1,10 +1,15 @@
-CFLAGS= -O2 -Wall -ImeshProcessor
+# Touch util.h if you want only to change REAL type
+ifeq ($(USE_DOUBLE),1)
+    CFLAGS=-DUSE_DOUBLE 
+endif
+
+CFLAGS+= -m32 -O2 -Wall -ImeshProcessor
 
 ifeq ($(OS),Windows_NT)
     CUDA_INSTALL_PATH=$(CUDA_PATH)
     CCBIN=-ccbin "D:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin"
     CFLAGS+= -I"$(CUDA_INSTALL_PATH)include\\"
-    CCBINFLAGS= -W3 -ImeshProcessor
+    CCBINFLAGS+= -W3 -ImeshProcessor
     LIBS= -L"$(CUDA_INSTALL_PATH)lib\Win32" -LmeshProcessor -lmesh3d -lcuda
     NVCC="$(CUDA_INSTALL_PATH)bin\nvcc.exe"
     TARGET=main.exe
@@ -12,7 +17,7 @@ else
     CUDA_INSTALL_PATH=/usr/local/cuda
     CCBIN=
     CFLAGS+= -I"$(CUDA_INSTALL_PATH)/include"
-    CCBINFLAGS=$(CFLAGS)
+    CCBINFLAGS+=$(CFLAGS)
     LIBS= -L"$(CUDA_INSTALL_PATH)/lib/" -LmeshProcessor -lmesh3d -lcuda
     NVCC=$(CUDA_INSTALL_PATH)/bin/nvcc
     TARGET=main
@@ -29,17 +34,28 @@ PTXFLAGS= -v -O2
 OBJS=main.o CudaContext.o DeviceAngularData.o DeviceMeshData.o LebedevQuad.o \
 	 HemiQuad.o Spherical.o AngularData.o MeshData.o Config.o
 
+DEPS=$(OBJS:.o=.dep) kernels.dep
+
 CUBIN=kernels.sm_12.cubin kernels.sm_13.cubin kernels.sm_20.cubin
 
+.PHONY: all clean deepclean cubin libs cleandeps 
 
-.PHONY: all clean deepclean cubin deps
+all: libs cubin $(TARGET)
 
+Makefile.deps: cleandeps $(DEPS)
 
-all: $(TARGET) cubin deps
+cleandeps: 
+	rm -f Makefile.deps
+
+%.dep : %.cpp
+	g++ $(CXXFLAGS) -M $< >> Makefile.deps
+
+%.dep : %.cu
+	$(NVCC) $(NVCCFLAGS) -M $< | sed "s/kernels.o/$(CUBIN)/">> Makefile.deps
 
 cubin: $(CUBIN)
 
-deps: 
+libs: 
 	$(MAKE) -C meshProcessor all
 
 %.sm_12.cubin : %.cu
@@ -61,3 +77,4 @@ clean:
 deepclean: clean
 	$(MAKE) -C meshProcessor clean
 
+include Makefile.deps

@@ -11,6 +11,7 @@
 #include "Config.h"
 
 REAL uround() {
+	printf("REAL = %s\n", sizeof(REAL) == 4 ? "float" : sizeof(REAL) == 8 ? "double" : "unknown!");
 	REAL x = 1.0;
 	while ((REAL)1.0 + x > 1.0)
 		x = 0.5 * x;
@@ -70,7 +71,7 @@ int main(int argc, char **argv) {
 		ctx->computeRhs(b);
 		ctx->copyToHost(_b, b, N * sizeof(REAL));
 
-		double q = 1.0 / (N-1), qq = 0;
+		double q = 1.0 / N, qq = 0;
 
 		printf("N = %d\n", N);
 		pbar("Matrix dump", 0);

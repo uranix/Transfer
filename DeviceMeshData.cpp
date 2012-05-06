@@ -25,6 +25,9 @@ DeviceMeshData::DeviceMeshData(const CudaContext *_ctx, const MeshData &host) {
 	facepos		= (idx *)ctx->deviceAlloc(facecnt*sizeof(idx));
 	bnd			= (face *)ctx->deviceAlloc(host.nF*sizeof(face));
 
+	idx totalmem = (2*nP + 2 + 2 * tetcnt + 2 * facecnt) * sizeof(idx) + 
+		host.nT * sizeof(tetrahedron) + host.nF * sizeof(face);
+
 	printf("DeviceMeshData:\n");
 	printf("\tmesh      = %p\n",mesh);
 	printf("\ttetstart  = %p\n",tetstart);
@@ -34,7 +37,7 @@ DeviceMeshData::DeviceMeshData(const CudaContext *_ctx, const MeshData &host) {
 	printf("\tfacestart = %p\n",facestart);
 	printf("\tfaceidx   = %p\n",faceidx);
 	printf("\tfacepos   = %p\n",facepos);
-	printf("\tmem used = %2.6f MB\n", -1.);
+	printf("\tmem used = %2.6f MB\n", 1e-6 * totalmem);
 
 	ctx->copyToDev(tetstart, host.tetstart, (nP+1)*sizeof(idx));
 	ctx->copyToDev(tetidx, host.tetidx, tetcnt*sizeof(idx));
