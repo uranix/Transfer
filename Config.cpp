@@ -106,11 +106,11 @@ Config::Config(const char *cfgfile) {
 	printf("\tkappa = { ");
 	for (int i = 1; i < nreg; i++)
 		printf("%2.6e, ", kappa[i]);
-	printf("%2.6e}\n", kappa[nreg]);
+	printf("%2.6e }\n", kappa[nreg]);
 	printf("\tIp = { ");
 	for (int i = 1; i < nreg; i++)
 		printf("%2.6e, ", Ip[i]);
-	printf("%2.6e}\n", Ip[nreg]);
+	printf("%2.6e }\n", Ip[nreg]);
 	printf("\tMesh file : %s\n", meshfn);
 	printf("\tSolution file : %s\n", outfn);
 

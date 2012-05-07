@@ -199,6 +199,7 @@ int main(int argc, char **argv) {
 	ctx->computeRhs(b);
 	double lmax;
 	eigest(ctx, b, f, Ap, &lmax); /* just three random vectors */
+	printf("Using %2.10e as Lmax estimate\n", lmax);
 
 	/* ----- cgs ----- */
 
