@@ -1,5 +1,18 @@
+# Binary files
 *.o
-*.exe
 *.a
 main
+main.exe
+*.cubin
+Makefile.deps
+
+# Intermediates
 cufiles/*
+
+# Mesh and configurations
+*.cfg
+*.vol
+
+# Outputs
+*.dat
+*.vtk

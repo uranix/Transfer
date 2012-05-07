@@ -27,4 +27,6 @@ typedef float REAL;
 typedef double REAL;
 #endif
 
+REAL uround();
+
 #endif
