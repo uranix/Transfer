@@ -89,16 +89,17 @@ double trieig(REAL *a, REAL *b, idx N) {
 	return lmax;
 }
 
-double eigest(CudaContext *ctx, REAL *v, REAL *v0, REAL *w) {
-	idx m = 20;
+double eigest(CudaContext *ctx, REAL *v, REAL *v0, REAL *w, double *extra) {
+	idx m = 30;
 	REAL a[m];
 	REAL b[m+1];
 	REAL *s;
 	ctx->scale(v, (REAL)1/ctx->norm(v));
 	ctx->mulAdd(v0, 0, v);
 	b[0] = 0;
-	double lmax = 0, lold;
+	double lmax = 0, lold = 0, loold;
 	idx j;
+	printf("Estimating first eigenvalue\n");
 	for (j = 0; j < m; j++) {
 		ctx->computeLhs(v, w);
 		ctx->mulAdd(v0, -b[j], w);
@@ -109,14 +110,19 @@ double eigest(CudaContext *ctx, REAL *v, REAL *v0, REAL *w) {
 		ctx->addProd(v, v0, -a[j]);
 		b[j+1] = ctx->norm(v);
 		ctx->scale(v, (REAL)1/b[j+1]);
+		loold = lold;
 		lold = lmax;
 		lmax = trieig(a, b, j+1);
-		printf("a[%d] = %e b[%d] = %e\n", j, a[j], j, b[j]);
-		if (fabs(lmax - lold) < 1e-6 * lmax)
+		if (fabs(lmax - lold) < 1e-6 * lmax) {
+			j++;
 			break;
+		}
 	}
-	printf("Done %d Arnoldi iterations. Approximate lmax = %e (diff = %e)\n", 
-			j, lmax, lmax - lold);
+	double q = (lmax - lold)/(lold - loold);
+	printf("Done %d Arnoldi iterations. Approximate lmax = %e (diff = %e, extrapolated diff = %e)\n", 
+			j, lmax, lmax - lold, (lmax - lold)/(1-q));
+
+	*extra = lmax + (lmax - lold) / (1-q);
 	return lmax;
 }
 
@@ -191,7 +197,8 @@ int main(int argc, char **argv) {
 	/* ----- eig ----- */
 
 	ctx->computeRhs(b);
-	eigest(ctx, b, f, Ap); /* just three random vectors */
+	double lmax;
+	eigest(ctx, b, f, Ap, &lmax); /* just three random vectors */
 
 	/* ----- cgs ----- */
 

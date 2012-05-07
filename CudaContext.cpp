@@ -166,7 +166,7 @@ REAL CudaContext::norm(const REAL *x) const {
 		const_cast<void **>(params), 0));
 	REAL hred;
 	copyToHost(&hred, red, sizeof(REAL));
-	hred /= meshdata->nP * angdata->slm;
+/*	hred /= meshdata->nP * angdata->slm; */
 	return sqrt(hred);
 }	
 
