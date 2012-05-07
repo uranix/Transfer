@@ -32,6 +32,7 @@ CudaContext::CudaContext(const int dev, const MeshData &dmd, const AngularData &
 	sprintf(fn, "kernels.sm_%d%d.cubin", major, minor);
 	printf("Loading %s module\n", fn);
 	_(cuModuleLoad(&_mod, fn));
+	LOAD_KERNEL(scaleKern);
 	LOAD_KERNEL(addProdKern);
 	LOAD_KERNEL(mulAddKern);
 	LOAD_KERNEL(mulAddProdKern);
@@ -111,6 +112,16 @@ void CudaContext::computeLhs(REAL *f, REAL *Af) const {
 		0, 0,
 		const_cast<void **>(params), 0));
 	_(cuLaunchKernel(surfacePart, 
+		meshdata->nPlow, meshdata->nPhigh, 1,
+		angdata->aslm, 1, 1,
+		0, 0,
+		const_cast<void **>(params), 0));
+}
+
+/* x *= wx */
+void CudaContext::scale(REAL *x, const REAL wx) const {
+	const void *params[5] = { &meshdata->nP, &angdata->aslm, &x, &wx };
+	_(cuLaunchKernel(scaleKern, 
 		meshdata->nPlow, meshdata->nPhigh, 1,
 		angdata->aslm, 1, 1,
 		0, 0,

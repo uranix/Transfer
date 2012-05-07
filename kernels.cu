@@ -9,6 +9,16 @@
 extern "C" {
 #endif
 
+__global__ void scaleKern(idx nP, idx aslm, REAL *x, const REAL wx) {
+	int lm = threadIdx.x;
+	int vertex = blockIdx.x + blockIdx.y * gridDim.x;
+
+	int i = vertex * aslm + lm;
+
+	if (vertex < nP)
+		x[i] *= wx;
+}
+
 __global__ void addProdKern(idx nP, idx aslm, REAL *x, const REAL *y, const REAL wy) {
 	int lm = threadIdx.x;
 	int vertex = blockIdx.x + blockIdx.y * gridDim.x;

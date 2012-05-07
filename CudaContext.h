@@ -10,6 +10,7 @@ struct CudaContext {
 private:
 	CUcontext _ctx;
 	CUmodule _mod;
+	CUfunction scaleKern;
 	CUfunction addProdKern;
 	CUfunction mulAddKern;
 	CUfunction mulAddProdKern;
@@ -35,6 +36,7 @@ public:
 	REAL *getHostSmall(void *src) const;
 	void computeLhs(REAL *f, REAL *Af) const;
 	void computeRhs(REAL *b) const;
+	void scale(REAL *x, const REAL wx) const;
 	void addProd(REAL *x, const REAL *y, const REAL wy) const;
 	void mulAdd(REAL *x, const REAL wx, const REAL *y) const;
 	void mulAddProd(REAL *x, const REAL wx, const REAL *y, const REAL wy) const;
