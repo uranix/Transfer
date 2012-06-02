@@ -41,7 +41,6 @@ int main(int argc, char **argv) {
 
 	CudaContext *ctx = new CudaContext (cfg.getDevice(), md, ad);
 
-
 	REAL *f = ctx->allocVector();
 	REAL *b = ctx->allocVector();
 	REAL *p = ctx->allocVector();
@@ -124,7 +123,7 @@ int main(int argc, char **argv) {
 		ctx->addProd(r, Ap, -alpha);
 		double nr = ctx->norm(r);
 		printf("k = %d norm r = %e\n", k, nr);
-		if (nr < 1e-10)
+		if (nr < 1e-8)
 			break;
 		ctx->mulAdd(z, 0, r); /* z = invprec(r); */
 		double nrz2 = ctx->dot(z, r);
@@ -137,20 +136,34 @@ int main(int argc, char **argv) {
 	/*------ cgs end -----*/
 
 	ctx->copyToHost(_f, f, ctx->N() * sizeof(REAL));
-	REAL *u[ad.slm];
-	REAL *Wx, *Wy, *Wz;
+	REAL *I[ad.slm];
 	for (idx k=0; k < ad.slm; k++) {
-		u[k] = new REAL[md.nP];
+		I[k] = new REAL[md.nP];
 		for (idx i = 0; i < md.nP; i++)
-			u[k][i] = _f[i*ctx->angdata->aslm + k];
+			I[k][i] = _f[i*ctx->angdata->aslm + k];
 	}
-	Wx = new REAL[md.nT];
-	Wy = new REAL[md.nT];
-	Wz = new REAL[md.nT];
 
-	md.ComputeFlux(u[0], Wx, Wy, Wz);
+	REAL *U = new REAL[md.nP];
+	REAL *W[3];
+	REAL *T[3][3];
 
-	md._m->saveVtk(cfg.getOutFilename(), sizeof(REAL), 3, 1, Wx, Wy, Wz, u[0]);
+	for (int i = 0; i < 3; i++)
+		W[i] = new REAL[md.nT];
+	
+	for (int i = 0; i < 3; i++) 
+		for (int j = 0; j < 3; j++)
+			T[i][j] = new REAL[md.nP];
+
+	md.ComputeMoments(ad, I, U, T);
+	md.ComputeFlux(T, W);
+
+	md._m->saveVtk(cfg.getOutFilename(), sizeof(REAL), "W%v", 
+			"U%sT%t", 
+			W[0], W[1], W[2],
+			U, 
+			T[0][0], T[0][1], T[0][2], 
+				     T[1][1], T[1][2], 
+				              T[2][2]);
 
 	delete ctx;
 

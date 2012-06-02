@@ -37,6 +37,7 @@ DeviceMeshData::DeviceMeshData(const CudaContext *_ctx, const MeshData &host) {
 	printf("\tfacestart = %p\n",facestart);
 	printf("\tfaceidx   = %p\n",faceidx);
 	printf("\tfacepos   = %p\n",facepos);
+	printf("\tnP = %d\n", nP);
 	printf("\tmem used = %2.6f MB\n", 1e-6 * totalmem);
 
 	ctx->copyToDev(tetstart, host.tetstart, (nP+1)*sizeof(idx));

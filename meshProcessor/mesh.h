@@ -97,7 +97,7 @@ public:
 	Face **faces;
 
 	Mesh(const char *fn);
-	void saveVtk(const char *fn, int realbytes, int nExtraCellData = 0, int nExtraPointData = 0, ...);
+	void saveVtk(const char *fn, int realbytes, const char *cellfmt, const char *pointfmt, ...);
 	bool check();
 	double quality();
 	~Mesh();

@@ -97,20 +97,45 @@ MeshData::MeshData(const Config &cfg) {
 	printf("Mesh has %d points, %d tetrahedra and %d boundary faces\n", _m->nVert, _m->nElems, _m->nBndFaces);
 }
 
-void MeshData::ComputeFlux(const REAL *U, REAL *Wx, REAL *Wy, REAL *Wz) {
-	// W = -4pi/3/kappa grad U
-	REAL mul = (REAL)4.18879020478639098461685784437;
-	for (idx i = 0; i < nT; i++) {
-		tetrahedron *t = mesh + i;
-		REAL wx = 0, wy = 0, wz = 0;
-		for (int j = 0; j < 4; j++) {
-			wx += U[t->p[j]] * t->s[j][0];
-			wy += U[t->p[j]] * t->s[j][1];
-			wz += U[t->p[j]] * t->s[j][2];
+void MeshData::ComputeMoments(
+		const AngularData &ad,
+		const REAL * const I[],
+		REAL *U,
+		REAL *T[3][3]) 
+{
+	REAL fourpi = (REAL)12.5663706143591729538505735331;
+	for (idx k = 0; k < nP; k++) {
+		U[k] = fourpi * I[0][k];
+		for (int i = 0; i < 3; i++)
+			for (int j = 0; j < 3; j++)
+				T[i][j][k] = 0;
+		for (idx lm = 0; lm < ad.slm; lm++) 
+			for (int i = 0; i < 3; i++) {
+				// lm' = 0
+				int j = ad.omega_pos[i * ad.slm * ad.slm + lm * ad.slm];
+				REAL v = ad.omega[i * ad.slm * ad.slm + lm * ad.slm];
+				T[i][j][k] += fourpi * v * I[lm][k];
+			}
+	}
+}
+
+void MeshData::ComputeFlux(	
+		REAL *T[3][3], 
+		REAL *W[3])
+{
+	// W = -1/kappa div_j T_ij
+	// assumed c = 1
+	REAL w[3];
+
+	for (idx i = 0; i < nT; i++) { 
+		tetrahedron *t = mesh + i;	
+		for (int j = 0; j < 3; j++) {
+			w[j] = 0;
+			for (int k = 0; k < 4; k++)
+				for (int a = 0; a < 3; a++)
+					w[j] += t->s[k][a] * T[a][j][t->p[k]];
+			W[j][i] = ((REAL)(1.0 / 3.0)) * w[j] / t->kappa_volume;
 		}
-		Wx[i] = mul * wx / t->kappa_volume;
-		Wy[i] = mul * wy / t->kappa_volume;
-		Wz[i] = mul * wz / t->kappa_volume;
 	}
 }
 

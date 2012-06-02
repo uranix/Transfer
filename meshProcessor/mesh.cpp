@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <ctype.h>
 
 void Mesh::fromVol(int nV, int nB, int nT, double *vert, int *bnd, int *tet, int *bndmat, int *tetmat) {
 	nVert = nV;
@@ -274,7 +275,9 @@ Mesh::Mesh(const char *fn) {
 	if (tetmat) delete[] tetmat;
 }
 
-void Mesh::saveVtk(const char *fn, int realbytes, int nExtraCellData, int nExtraPointData, ...) {
+#define REALVEC(x,i) ((realbytes == 4) ? x.s[i] : x.d[i])
+
+void Mesh::saveVtk(const char *fn, int realbytes, const char *cellfmt, const char *pointfmt, ...) {
 	typedef union {
 		double *d;
 		float *s;
@@ -282,7 +285,8 @@ void Mesh::saveVtk(const char *fn, int realbytes, int nExtraCellData, int nExtra
 
 	FILE *f;
 	va_list args;
-	va_start(args, nExtraPointData);
+	va_start(args, pointfmt);
+	char id[1024];
 
 	f=fopen(fn, "w");
 	if (!f) {
@@ -323,23 +327,127 @@ void Mesh::saveVtk(const char *fn, int realbytes, int nExtraCellData, int nExtra
 	for (int i=0; i<nElems; i++)
 		fprintf(f, "%2.10e\n", elements[i]->center.z);
 
-	fprintf(f, "\nFIELD ExtraCellData %d\n", nExtraCellData);
-	for (int nextra = 0; nextra < nExtraCellData; nextra++) {
-		realptr p = va_arg(args, realptr);
-		fprintf(f, "\nextra_data%.4d 1 %9d double\n", nextra, nElems);
-		for (int i=0; i<nElems; i++)
-			fprintf(f, " %2.16e\n", (realbytes == 4) ? p.s[i] : p.d[i]);
+	const char *p = cellfmt;
+	char *q = id;
+
+	while (*p) {
+		if (*p == '%') {
+			p++;
+			if (!*p)
+				break;
+			if (*p == 's') {
+				realptr data = va_arg(args, realptr);
+				*q = 0;
+				fprintf(f, "\nSCALARS %s double\nLOOKUP_TABLE default\n", id);
+				for (int i=0; i<nElems; i++)
+					fprintf(f, "% 2.16e\n", REALVEC(data, i));
+				q = id;
+				p++;
+				continue;
+			}
+			if (*p == 'v') {
+				realptr d1 = va_arg(args, realptr);
+				realptr d2 = va_arg(args, realptr);
+				realptr d3 = va_arg(args, realptr);
+				*q = 0;
+				fprintf(f, "\nVECTORS %s double\n", id);
+				for (int i=0; i<nElems; i++)
+					fprintf(f, "% 2.16e % 2.16e % 2.16e\n", REALVEC(d1, i), REALVEC(d2, i), REALVEC(d3, i));
+				q = id;
+				p++;
+				continue;
+			}
+			if (*p == 't') {
+				realptr dxx = va_arg(args, realptr);
+				realptr dxy = va_arg(args, realptr);
+				realptr dxz = va_arg(args, realptr);
+				realptr dyy = va_arg(args, realptr);
+				realptr dyz = va_arg(args, realptr);
+				realptr dzz = va_arg(args, realptr);
+				*q = 0;
+				fprintf(f, "\nTENSORS %s double\n", id);
+				for (int i=0; i<nElems; i++)
+					fprintf(f, "% 2.16e % 2.16e % 2.16e\n% 2.16e % 2.16e % 2.16e\n% 2.16e % 2.16e % 2.16e\n\n", 
+							REALVEC(dxx, i), REALVEC(dxy, i), REALVEC(dxz, i),
+							REALVEC(dxy, i), REALVEC(dyy, i), REALVEC(dyz, i),
+							REALVEC(dxz, i), REALVEC(dyz, i), REALVEC(dzz, i));
+				q = id;
+				p++;
+				continue;
+			}
+			if (!isgraph(*p)) {
+				*q = '_';
+				q++;
+				p++;
+				continue;
+			}
+		}
+		*q = *p;
+		p++;
+		q++;
 	}
 
 	fprintf(f, "\nPOINT_DATA %9d\n", nVert);
-	fprintf(f, "\nFIELD ExtraPointData %d\n", nExtraPointData);
-	for (int nextra = 0; nextra < nExtraPointData; nextra++) {
-		realptr p = va_arg(args, realptr);
-		fprintf(f, "\nextra_data%.4d 1 %9d double\n", nextra, nVert);
-		for (int i=0; i<nVert; i++)
-			fprintf(f, " %2.16e\n", (realbytes == 4) ? p.s[i] : p.d[i]);
+
+	p = pointfmt;
+	q = id;
+
+	while (*p) {
+		if (*p == '%') {
+			p++;
+			if (!*p)
+				break;
+			if (*p == 's') {
+				realptr data = va_arg(args, realptr);
+				*q = 0;
+				fprintf(f, "\nSCALARS %s double\nLOOKUP_TABLE default\n", id);
+				for (int i=0; i<nVert; i++)
+					fprintf(f, "% 2.16e\n", REALVEC(data, i));
+				q = id;
+				p++;
+				continue;
+			}
+			if (*p == 'v') {
+				realptr d1 = va_arg(args, realptr);
+				realptr d2 = va_arg(args, realptr);
+				realptr d3 = va_arg(args, realptr);
+				*q = 0;
+				fprintf(f, "\nVECTORS %s double\n", id);
+				for (int i=0; i<nVert; i++)
+					fprintf(f, "% 2.16e % 2.16e % 2.16e\n", REALVEC(d1, i), REALVEC(d2, i), REALVEC(d3, i));
+				q = id;
+				p++;
+				continue;
+			}
+			if (*p == 't') {
+				realptr dxx = va_arg(args, realptr);
+				realptr dxy = va_arg(args, realptr);
+				realptr dxz = va_arg(args, realptr);
+				realptr dyy = va_arg(args, realptr);
+				realptr dyz = va_arg(args, realptr);
+				realptr dzz = va_arg(args, realptr);
+				*q = 0;
+				fprintf(f, "\nTENSORS %s double\n", id);
+				for (int i=0; i<nVert; i++)
+					fprintf(f, "% 2.16e % 2.16e % 2.16e\n% 2.16e % 2.16e % 2.16e\n% 2.16e % 2.16e % 2.16e\n\n", 
+							REALVEC(dxx, i), REALVEC(dxy, i), REALVEC(dxz, i),
+							REALVEC(dxy, i), REALVEC(dyy, i), REALVEC(dyz, i),
+							REALVEC(dxz, i), REALVEC(dyz, i), REALVEC(dzz, i));
+				q = id;
+				p++;
+				continue;
+			}
+			if (!isgraph(*p)) {
+				*q = '_';
+				q++;
+				p++;
+				continue;
+			}
+		}
+		*q = *p;
+		p++;
+		q++;
 	}
-	fclose(f);
 }
 
 Mesh::~Mesh() {

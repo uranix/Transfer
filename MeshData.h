@@ -5,6 +5,7 @@
 #include "tetrahedron.h"
 #include "face.h"
 #include "Config.h"
+#include "AngularData.h"
 
 struct CudaContext;
 class Mesh;
@@ -22,7 +23,9 @@ struct MeshData {
 	idx *facepos;
 	face *bnd;
 	MeshData(const Config &);
-	void ComputeFlux(const REAL *U, REAL *Wx, REAL *Wy, REAL *Wz);
+	void ComputeMoments(const AngularData &ad, const REAL * const I[], REAL *U, REAL *T[3][3]);
+	void ComputeFlux(	REAL *T[3][3], 
+						REAL *W[3]);
 	~MeshData();
 
 	Mesh *_m;
