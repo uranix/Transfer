@@ -41,6 +41,8 @@ CudaContext::CudaContext(const int dev, const MeshData &dmd, const AngularData &
 	LOAD_KERNEL(rightHandSide);
 	LOAD_KERNEL(volumePart);
 	LOAD_KERNEL(surfacePart);
+	LOAD_KERNEL(volumePartDiag);
+	LOAD_KERNEL(surfacePartDiag);
 	
 	meshdata = new DeviceMeshData(this, dmd);
 	angdata = new DeviceAngularData(this, dad);
@@ -53,7 +55,6 @@ CudaContext::~CudaContext(){
 	delete angdata;
 	_(cuModuleUnload(_mod));
 	_(cuCtxDetach(this->_ctx));
-
 }
 
 void *CudaContext::deviceAlloc(size_t size) const {
@@ -112,6 +113,20 @@ void CudaContext::computeLhs(REAL *f, REAL *Af) const {
 		0, 0,
 		const_cast<void **>(params), 0));
 	_(cuLaunchKernel(surfacePart, 
+		meshdata->nPlow, meshdata->nPhigh, 1,
+		angdata->aslm, 1, 1,
+		0, 0,
+		const_cast<void **>(params), 0));
+}
+
+void CudaContext::computeLhsDiag(REAL *f, REAL *Af) const {
+	const void *params[4] = { meshdata, angdata, &f, &Af };
+	_(cuLaunchKernel(volumePartDiag, 
+		meshdata->nPlow, meshdata->nPhigh, 1,
+		angdata->aslm, 1, 1,
+		0, 0,
+		const_cast<void **>(params), 0));
+	_(cuLaunchKernel(surfacePartDiag, 
 		meshdata->nPlow, meshdata->nPhigh, 1,
 		angdata->aslm, 1, 1,
 		0, 0,

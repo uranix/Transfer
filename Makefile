@@ -32,7 +32,8 @@ LDFLAGS=-m32 -g
 PTXFLAGS= -v -O2
 
 OBJS=main.o CudaContext.o DeviceAngularData.o DeviceMeshData.o LebedevQuad.o \
-	 HemiQuad.o Spherical.o AngularData.o MeshData.o Config.o Util.o Eigenvalue.o
+	 HemiQuad.o Spherical.o AngularData.o MeshData.o Config.o Util.o Eigenvalue.o \
+	 E1.o
 
 DEPS=$(OBJS:.o=.dep) kernels.dep
 

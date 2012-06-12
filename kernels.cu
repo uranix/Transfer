@@ -49,7 +49,7 @@ __global__ void mulAddProdKern(idx nP, idx aslm, REAL *x, const REAL wx, const R
 		x[i] = wx*x[i]+wy*y[i];
 }
 
-CT_ASSERT(ASLM_MAX == 256);
+CT_ASSERT(ASLM_MAX == 128);
 
 /* TODO replace with proper, high performance version */
 __global__ void normKern(idx nP, idx aslm, idx slm, const REAL *x, REAL *res) {
@@ -73,7 +73,6 @@ __global__ void normKern(idx nP, idx aslm, idx slm, const REAL *x, REAL *res) {
 			reduce[lm] += reduce[lm + s];
 		__syncthreads();
 	} */
-	ITER(128); 
 	ITER(64);
 	ITER(32);
 	ITER(16);
@@ -104,7 +103,6 @@ __global__ void dotKern(idx nP, idx aslm, idx slm, const REAL *x, const REAL *y,
 			reduce[lm] += reduce[lm + s];
 		__syncthreads();
 	}*/
-	ITER(128); 
 	ITER(64);
 	ITER(32);
 	ITER(16);
@@ -199,14 +197,13 @@ Assumed:
 		~32 Kb blockDim.x = 1024
    */
 
-
 __global__ void volumePart(	DeviceMeshDataRaw md,
 							DeviceAngularDataRaw ad,
 							REAL *f,
 							REAL *r) 
 {
 	__shared__ tetrahedron stet;
-	__shared__ REAL sums_j[3*ASLM_MAX]; 
+	__shared__ REAL sums_ij[9*ASLM_MAX]; 
 	tetrahedron *tet = &stet;
 
 	idx slm = ad.slm;
@@ -231,6 +228,11 @@ __global__ void volumePart(	DeviceMeshDataRaw md,
 		return;
 	lo = start[vertex];
 	hi = start[vertex+1];
+
+	for (int i = 0; i < 3; i++)
+		for (int j = 0; j < 3; j++)
+			sums_ij[(3*i+j) * aslm + lm] = 0;
+
 	for (int j = lo; j < hi; j++) {
 		__syncthreads();
 		idx local = pos[j];
@@ -249,41 +251,108 @@ __global__ void volumePart(	DeviceMeshDataRaw md,
 		for (int si = 0; si < 3; si++)
 			sum_i[si] = tet->s[local][si] / tet->kappa_volume * ((REAL)(1. / 9.)); 
 		#pragma unroll
-		for (idx sj = 0, v = lm; sj < 3; sj++, v += aslm) {
-			sums_j[v] = 0;
+		for (idx si = 0, v = lm; si < 3; si++)
+			#pragma unroll
+			for (idx sj = 0; sj < 3; sj++, v += aslm) {
+				#pragma unroll
+				for (int k = 0; k<4; k++)
+					sums_ij[v] += sum_i[si] * fl[k] * tet->s[k][sj];
+			}
+	}
+	__syncthreads();
+	REAL rowsum;
+	/* nvcc can't unroll this.
+	idx v = lm;
+	#pragma unroll
+	for (int row = 0; row < 3; row++) {
+		rowsum = 0;
+		for (int lms = 0; lms < slm; lms++, v += aslm) {
+			rowsum += omega[v] * sums_j[omega_pos[v]*aslm + lms];
+		}
+		v += (aslm-slm)*aslm;
+		sum += rowsum * sum_i[row];
+	}
+	*/
+	rowsum = 0;
+	for (idx lms = 0, v = lm; lms < slm; lms++, v += aslm)
+		rowsum += omega[v] * sums_ij[(0 + omega_pos[v])*aslm + lms]; /* TODO: resolve bank conflict (x16) */
+	for (idx lms = 0, v = lm + aslm*aslm; lms < slm; lms++, v += aslm)
+		rowsum += omega[v] * sums_ij[(3 + omega_pos[v])*aslm + lms]; /* TODO: resolve bank conflict (x16) */
+	for (idx lms = 0, v = lm + aslm*aslm*2; lms < slm; lms++, v += aslm)
+		rowsum += omega[v] * sums_ij[(6 + omega_pos[v])*aslm + lms]; /* TODO: resolve bank conflict (x16) */
+
+	sum += rowsum;
+
+	r[aslm*vertex + lm] = sum;
+}
+
+/* Version with only diag(O_iO_j) used */
+__global__ void volumePartDiag(	DeviceMeshDataRaw md,
+								DeviceAngularDataRaw ad,
+								REAL *f,
+								REAL *r) 
+{
+	__shared__ tetrahedron stet;
+	tetrahedron *tet = &stet;
+
+	idx aslm = ad.aslm;
+	REAL *omega = ad.omega;
+
+	idx *start = md.tetstart;
+	idx *tetidx = md.tetidx;
+	idx *pos = md.tetpos;
+	tetrahedron *mesh = md.mesh; 
+
+	idx vertex = blockIdx.x + blockIdx.y * gridDim.x;
+	idx lm = threadIdx.x;
+	REAL sum_i[3];
+	REAL sum_ij[9];
+	idx lo, hi;
+	REAL fl[4];
+	REAL fsum;
+
+	REAL sum = 0;
+	if (vertex >= md.nP)
+		return;
+	lo = start[vertex];
+	hi = start[vertex+1];
+	for (int i=0; i < 9; i++)
+		sum_ij[i] = 0;
+	for (int j = lo; j < hi; j++) {
+		__syncthreads();
+		idx local = pos[j];
+		
+		dmemcpy(tet, mesh+tetidx[j], sizeof(tetrahedron));
+		__syncthreads();
+		fsum = 0;
+		#pragma unroll
+		for (int s = 0; s < 4; s++) {
+			REAL tmp = f[aslm*tet->p[s] + lm];
+			fl[s] = tmp; 
+			fsum += tmp;
+		}
+		sum += tet->kappa_volume * (fl[local] + fsum) * ((REAL)(1. / 20.));
+		#pragma unroll
+		for (int si = 0; si < 3; si++)
+			sum_i[si] = tet->s[local][si] / tet->kappa_volume * ((REAL)(1. / 9.)); 
+		#pragma unroll
+		for (idx si = 0; si < 3; si++) {
 			#pragma unroll
 			for (int k = 0; k<4; k++)
-				sums_j[v] += fl[k] * tet->s[k][sj];
+				sum_ij[4*si] += sum_i[si] * fl[k] * tet->s[k][si];
 		}
 		__syncthreads();
-		REAL rowsum;
-		/* nvcc can't unroll this.
-		idx v = lm;
-		#pragma unroll
-		for (int row = 0; row < 3; row++) {
-			rowsum = 0;
-			for (int lms = 0; lms < slm; lms++, v += aslm) {
-				rowsum += omega[v] * sums_j[omega_pos[v]*aslm + lms];
-			}
-			v += (aslm-slm)*aslm;
-			sum += rowsum * sum_i[row];
-		}
-		*/
-		rowsum = 0;
-		for (idx lms = 0, v = lm; lms < slm; lms++, v += aslm)
-			rowsum += omega[v] * sums_j[omega_pos[v]*aslm + lms]; /* TODO: resolve bank conflict (x16) */
-		sum += rowsum * sum_i[0];
-
-		rowsum = 0;
-		for (idx lms = 0, v = lm + aslm*aslm; lms < slm; lms++, v += aslm)
-			rowsum += omega[v] * sums_j[omega_pos[v]*aslm + lms]; /* TODO: resolve bank conflict (x16) */
-		sum += rowsum * sum_i[1];
-
-		rowsum = 0;
-		for (idx lms = 0, v = lm + aslm*aslm*2; lms < slm; lms++, v += aslm)
-			rowsum += omega[v] * sums_j[omega_pos[v]*aslm + lms]; /* TODO: resolve bank conflict (x16) */
-		sum += rowsum * sum_i[2];
 	}
+	REAL rowsum = 0;
+	/* Diagonal subblocks are diagonal itself  */
+	idx v = lm + lm * aslm;
+	rowsum += omega[v] * sum_ij[0]; 
+	v += aslm*aslm;
+	rowsum += omega[v] * sum_ij[4]; 
+	v += aslm*aslm;
+	rowsum += omega[v] * sum_ij[8]; 
+	sum += rowsum;
+
 	r[aslm*vertex + lm] = sum;
 }
 
@@ -364,6 +433,61 @@ __global__ void surfacePart( DeviceMeshDataRaw md,
 		__syncthreads();
 		for (int lms = 0; lms < slm; lms ++)
 			sum += surf * On[aslm * lms + lm] * (fv[local*aslm + lms] + fv[3*aslm + lms]) * ((REAL)(1. / 12.));
+	}
+	r[aslm*vertex + lm] += sum;
+}
+
+__global__ void surfacePartDiag(	DeviceMeshDataRaw md,
+									DeviceAngularDataRaw ad,
+									REAL *f, 
+									REAL *r) 
+{
+	__shared__ face stri;
+	REAL fv[4]; /* f1,f2,f3,fsum */
+	face *tr = &stri;
+	REAL *On;
+
+	idx *start = md.facestart;
+	idx *faceidx = md.faceidx;
+	idx *pos = md.facepos;
+	face *bnd = md.bnd;
+
+	idx aslm = ad.aslm;
+	REAL *Ox = ad.Ox;
+	REAL *Oy = ad.Oy;
+	REAL *Oz = ad.Oz;
+
+	idx vertex = blockIdx.x + blockIdx.y * gridDim.x;
+	idx lm = threadIdx.x;
+	idx lo, hi;
+
+	REAL sum = 0;
+	if (vertex >= md.nP)
+		return;
+
+	lo = start[vertex];
+	hi = start[vertex+1];
+	for (int j = lo; j < hi; j++) {
+		__syncthreads();
+		idx local = pos[j];	
+		dmemcpy(tr, bnd + faceidx[j], sizeof(face));
+		__syncthreads();
+		REAL surf = abs(tr->s[0] + tr->s[1] + tr->s[2]);
+		if (2*abs(tr->s[0]) > surf)
+			On = Ox;
+		else if (2*abs(tr->s[1]) > surf)
+			On = Oy;
+		else
+			On = Oz;
+		fv[3] = 0;
+		#pragma unroll
+		for (int s = 0; s<3; s++) {
+			REAL tmp = f[aslm*tr->p[s]+lm];
+			fv[s] = tmp;
+			fv[3] += tmp;
+		}
+		__syncthreads();
+		sum += surf * On[aslm * lm + lm] * (fv[local] + fv[3]) * ((REAL)(1. / 12.));
 	}
 	r[aslm*vertex + lm] += sum;
 }

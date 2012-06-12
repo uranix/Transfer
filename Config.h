@@ -6,6 +6,8 @@ class Config {
 	int maxk;
 	int dev;
 	int dump;
+	int prec;
+	int soltype;
 	double *kappa;
 	double *Ip;
 	char meshfn[1024];
@@ -36,6 +38,12 @@ public:
 	}
 	bool doDump() const {
 		return dump != 0;
+	}
+	bool usePrec() const {
+		return prec != 0;
+	}
+	int solType() const {
+		return soltype;
 	}
 };
 

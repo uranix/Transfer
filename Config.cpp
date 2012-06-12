@@ -88,11 +88,25 @@ Config::Config(const char *cfgfile) {
 				die("scanf failed to parse device parameter\n");
 			continue;
 		}
+		if (!strncmp(buf, "soltype", 7)) {
+			if (rid >= 0) 
+				die("soltype parameter in section");
+			if (sscanf(buf, "soltype = %d", &soltype) != 1) 
+				die("scanf failed to parse soltype parameter\n");
+			continue;
+		}
 		if (!strncmp(buf, "dump", 4)) {
 			if (rid >= 0) 
 				die("dump parameter in section");
 			if (sscanf(buf, "dump = %d", &dump) != 1) 
 				die("scanf failed to parse dump parameter\n");
+			continue;
+		}
+		if (!strncmp(buf, "precondition", 12)) {
+			if (rid >= 0) 
+				die("dump parameter in section");
+			if (sscanf(buf, "precondition = %d", &prec) != 1) 
+				die("scanf failed to parse precondition parameter\n");
 			continue;
 		}
 	}

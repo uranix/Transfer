@@ -19,6 +19,8 @@ private:
 	CUfunction rightHandSide;
 	CUfunction volumePart;
 	CUfunction surfacePart;
+	CUfunction volumePartDiag;
+	CUfunction surfacePartDiag;
 public:	
 	REAL *red;
 	const DeviceMeshData *meshdata;
@@ -35,6 +37,7 @@ public:
 	void copyToHost(void *dst, void *src, size_t sz) const;
 	REAL *getHostSmall(void *src) const;
 	void computeLhs(REAL *f, REAL *Af) const;
+	void computeLhsDiag(REAL *f, REAL *Af) const;
 	void computeRhs(REAL *b) const;
 	void scale(REAL *x, const REAL wx) const;
 	void addProd(REAL *x, const REAL *y, const REAL wy) const;
