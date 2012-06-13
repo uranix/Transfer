@@ -310,6 +310,7 @@ void Mesh::saveVtk(const char *fn, int realbytes, const char *cellfmt, const cha
 		fprintf(f, "10 %s", (i&15)==15?"\n":"");
 
 	fprintf(f, "\nCELL_DATA %9d\n", nElems);
+	/* so junk
 	fprintf(f, "\nFIELD MeshProcessorData 5\n");
 	fprintf(f, "\n__mp_Volume 1 %9d double\n", nElems);
 	for (int i=0; i<nElems; i++)
@@ -326,7 +327,7 @@ void Mesh::saveVtk(const char *fn, int realbytes, const char *cellfmt, const cha
 	fprintf(f, "\n__mp_CenterZ 1 %9d double\n", nElems);
 	for (int i=0; i<nElems; i++)
 		fprintf(f, "%2.10e\n", elements[i]->center.z);
-
+	*/
 	const char *p = cellfmt;
 	char *q = id;
 
