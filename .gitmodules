@@ -1,0 +1,3 @@
+[submodule "meshProcessor"]
+	path = meshProcessor
+	url = git@github.com:uranix/meshProcessor.git

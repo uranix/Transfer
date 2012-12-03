@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <iostream>
+
 #include "meshProcessor/mesh.h"
 
 #include "AngularData.h"
@@ -144,7 +146,7 @@ int main(int argc, char **argv) {
 		ctx->addProd(r, Ap, -alpha);
 		double nr = ctx->norm(r);
 		printf("k = %d norm r = %e\n", k, nr);
-		if (nr < 1e-8)
+		if (nr < 1e-4)
 			break;
 		if (cfg.usePrec())
 			invprec(ctx, z, r, precAp, precp, precr);
@@ -204,7 +206,7 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	md._m->saveVtk(cfg.getOutFilename(), sizeof(REAL), "W%v", 
+	md._m->saveVtk(std::cerr, cfg.getOutFilename(), sizeof(REAL), "W%v", 
 			"U%sT%taU%saW%saT%s", 
 			W[0], W[1], W[2],
 			U, 

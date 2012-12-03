@@ -3,7 +3,9 @@ ifeq ($(USE_DOUBLE),1)
     CFLAGS=-DUSE_DOUBLE 
 endif
 
-CFLAGS+= -m32 -O2 -Wall -ImeshProcessor
+CPU_BITS=-m64
+
+CFLAGS+= -m64 -O2 -Wall -ImeshProcessor
 
 ifeq ($(OS),Windows_NT)
     CUDA_INSTALL_PATH=$(CUDA_PATH)
@@ -14,7 +16,7 @@ ifeq ($(OS),Windows_NT)
     NVCC="$(CUDA_INSTALL_PATH)bin\nvcc.exe"
     TARGET=main.exe
 else
-    CUDA_INSTALL_PATH=/usr/local/cuda
+    CUDA_INSTALL_PATH=/usr/
     CCBIN=
     CFLAGS+= -I"$(CUDA_INSTALL_PATH)/include"
     CCBINFLAGS+=$(CFLAGS)
@@ -26,9 +28,9 @@ endif
 CXXFLAGS=$(CFLAGS)
 
 NVCCFLAGS= $(CCBIN) -I. -O2 -Xcompiler "$(CCBINFLAGS)"\
-		   -m32 \
+		   -m64 \
 		   --keep --keep-dir cufiles
-LDFLAGS=-m32 -g
+LDFLAGS=-m64 -g
 PTXFLAGS= -v -O2
 
 OBJS=main.o CudaContext.o DeviceAngularData.o DeviceMeshData.o LebedevQuad.o \

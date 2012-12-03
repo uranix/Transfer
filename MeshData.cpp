@@ -4,9 +4,11 @@
 #include "meshProcessor/tetrahedron.h"
 #include "meshProcessor/tri_face.h"
 
+#include <iostream>
+
 MeshData::MeshData(const Config &cfg) {
-	_m = new Mesh(cfg.getMeshFilename());
-	bool check = _m->check();
+	_m = new Mesh(std::cerr, cfg.getMeshFilename());
+	bool check = _m->check(std::cerr);
 	tetstart = 0;
 	printf("Mesh check: %s\n", check ? "OK": "Failed");
 	if (!check)
@@ -19,8 +21,8 @@ MeshData::MeshData(const Config &cfg) {
 	idx st = 0, sb = 0, nt, nb;
 	for (idx i=0; i<nP; i++) {
 		Vertex *v = _m->vertices[i];
-		nt = v->elnum;
-		nb = v->bndnum;
+		nt = v->elems.size();
+		nb = v->bnds.size();
 		tetstart[i+1] = tetstart[i] + nt;
 		facestart[i+1] = facestart[i] + nb;
 		st += nt;
@@ -35,25 +37,19 @@ MeshData::MeshData(const Config &cfg) {
 	sb = st = 0;
 	for (idx i=0; i<nP; i++) {
 		Vertex *v = _m->vertices[i];
-		nt = v->elnum;
-		nb = v->bndnum;
-		Node<Element *> *e = v->elems;
-		Node<int> *ei = v->elidx;
-		for (idx j=0;j<nt;j++) {
-			tetpos[st] = ei->data;
-			tetidx[st] = e->data->index;
+		nt = v->elems.size();
+		nb = v->bnds.size();
+		std::vector<std::pair<Element *, int> > &e = v->elems;
+		for (std::vector<std::pair<Element *, int> >::iterator j = e.begin(); j != e.end(); j++) {
+			tetpos[st] = j->second;
+			tetidx[st] = j->first->index;
 			st++;
-			ei = ei->next;
-			e = e->next;
 		}
-		Node<Face *> *b = v->bnds;
-		Node<int> *bi = v->bndidx;
-		for (idx j=0;j<nb;j++) {
-			facepos[sb] = bi->data;
-			faceidx[sb] = b->data->bnd_index;
+		std::vector<std::pair<Face *, int> > &b = v->bnds;
+		for (std::vector<std::pair<Face *, int> >::iterator j = b.begin(); j != b.end(); j++) {
+			facepos[sb] = j->second;
+			faceidx[sb] = j->first->bnd_index;
 			sb++;
-			bi = bi->next;
-			b = b->next;
 		}
 	}
 
