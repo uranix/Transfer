@@ -5,7 +5,7 @@ endif
 
 CPU_BITS=-m64
 
-CFLAGS+= -m64 -O2 -Wall -ImeshProcessor
+CFLAGS+= $(CPU_BITS) -O2 -Wall -ImeshProcessor
 
 ifeq ($(OS),Windows_NT)
     CUDA_INSTALL_PATH=$(CUDA_PATH)
@@ -28,9 +28,9 @@ endif
 CXXFLAGS=$(CFLAGS)
 
 NVCCFLAGS= $(CCBIN) -I. -O2 -Xcompiler "$(CCBINFLAGS)"\
-		   -m64 \
+		   $(CPU_BITS) \
 		   --keep --keep-dir cufiles
-LDFLAGS=-m64 -g
+LDFLAGS=$(CPU_BITS) -g
 PTXFLAGS= -v -O2
 
 OBJS=main.o CudaContext.o DeviceAngularData.o DeviceMeshData.o LebedevQuad.o \
@@ -58,19 +58,22 @@ cleandeps:
 
 cubin: $(CUBIN)
 
+cufiles:
+	mkdir -p cufiles
+
 libs: 
 	$(MAKE) -C meshProcessor all
 
-%.sm_12.cubin : %.cu
+%.sm_12.cubin : %.cu cufiles
 	$(NVCC) $(NVCCFLAGS) -Xptxas "$(PTXFLAGS)" -gencode=arch=compute_12,code=sm_12 -cubin $< -o $@
 
-%.sm_13.cubin : %.cu
+%.sm_13.cubin : %.cu cufiles
 	$(NVCC) $(NVCCFLAGS) -Xptxas "$(PTXFLAGS)" -gencode=arch=compute_13,code=sm_13 -cubin $< -o $@
 
-%.sm_20.cubin : %.cu
+%.sm_20.cubin : %.cu cufiles
 	$(NVCC) $(NVCCFLAGS) -Xptxas "$(PTXFLAGS)" -gencode=arch=compute_20,code=sm_20 -cubin $< -o $@
 
-$(TARGET): $(OBJS)
+$(TARGET): $(OBJS) meshProcessor/libmesh3d.a
 	g++ $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
 
 clean: 
